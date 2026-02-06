@@ -10,9 +10,9 @@ I am using [uv](https://docs.astral.sh/uv/), which is an extremely fast Python p
 1. Create a root folder to hold all the code for this video course (e.g. `~/home/learning_google_adk`). This can be created anywhere on your hard disk - I'll refer to this folder as `$CODE_ROOT` henceforth.
 2. Open a terminal window (or command shell on Windows) and `cd $CODE_ROOT` folder.
 3. Created a `requirements.txt` file with the entries [as shown here](./requirements.txt)
-4. Created a local Python environment by running `uv init .` in the `$CODE_ROOT` folder.
-5. Activated the just created environment by running (on Windows: `.venv\Script\activate.bat`; on Linux/Mac: `source .venv\bin\activate`). You should see your command prompt change to reflect the new Python environment is in use.
-5. Then run `uv pip install -r requirements.txt` from the `$CODE_ROOT` folder. This will install all the required packaged.
+4. Created a local Python environment by running `uv init . [--python 3.12]` in the `$CODE_ROOT` folder. The `--python 3.12` is optional and used to specify a specific Python version to use. If omitted, it will default to latest Python version available.
+5. Activated the just created environment by running (on Windows: `.venv\Script\activate.bat`; on Linux/Mac: `source .venv/bin/activate`). You should see your command prompt change to reflect the new Python environment is in use.
+5. Then run `uv pip install -r requirements.txt` or `uv add -r requirements.txt` from the `$CODE_ROOT` folder. This will install all the required packaged.
 
 ### When you are cloding this Github Repo
 Firstly, fell free to do so. I am sharing code for learning purpose only with no fit-for-purpose guarantees!
