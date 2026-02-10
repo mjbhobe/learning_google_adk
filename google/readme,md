@@ -1,0 +1,28 @@
+## Learing Google ADK from the creators themselves!
+
+This is a tutorial from Google & can be found (here)[https://codelabs.developers.google.com/onramp/instructions#0]. I have developed it as separate Python modules (*.py files rather than notebooks).
+
+### Setup
+
+```bash
+# create a folder to host your code (e.g. ~/adk_projects)
+cd ~/adk_projects  # replace adk_projects with your folder name
+
+# Create a virtual environment
+uv venv . --python 3.12
+
+# Activate the virtual environment
+# Windows
+.venv\Scripts\activate
+# Linux/Mac
+# source .venv/bin/activate
+
+# Install dependencies
+uv add google-adk google-genai rich
+```
+
+### Run the code  << TO DO >>
+
+```bash
+python -m tool_agent.agent
+```

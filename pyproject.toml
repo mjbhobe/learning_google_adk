@@ -3,12 +3,14 @@ name = "learning-google-adk"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 dependencies = [
-    "google-adk[database]>=1.9.0",
-    "google-generativeai>=0.8.5",
-    "litellm>=1.74.15.post1",
-    "psutil>=7.0.0",
-    "python-dotenv>=1.1.1",
-    "yfinance>=0.2.65",
+    "google-adk>=1.24.1",
+    "google-generativeai>=0.8.6",
+    "psutil>=7.2.2",
+    "python-dotenv>=1.2.1",
+    "python-weather>=2.1.2",
+    "pyyaml>=6.0.3",
+    "rich>=14.3.2",
+    "yfinance>=1.1.0",
 ]
