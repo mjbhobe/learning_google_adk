@@ -14,7 +14,7 @@ I am using [uv](https://docs.astral.sh/uv/), which is an extremely fast Python p
 5. Activated the just created environment by running (on Windows: `.venv\Script\activate.bat`; on Linux/Mac: `source .venv/bin/activate`). You should see your command prompt change to reflect the new Python environment is in use.
 5. Then run `uv pip install -r requirements.txt` or `uv add -r requirements.txt` from the `$CODE_ROOT` folder. This will install all the required packaged.
 
-### When you are cloding this Github Repo
+### When you are cloning this Github Repo
 Firstly, fell free to do so. I am sharing code for learning purpose only with no fit-for-purpose guarantees!
 
 You should first install `uv` for your respective OS. Installation instructions can be found [here](https://docs.astral.sh/uv/getting-started/installation/). Once you have `uv` installed on your machine, follow the steps below.
@@ -23,16 +23,8 @@ Assume you are cloning this repo to `c:\code` folder on Windows or `~/code` fold
 
 **Part A: setting up your local Python Environment**
 
-1. `cd ~/code/learning_google_adk` or `cd c:\code\learning_google_adk` folder.
-2. Run `uv venv` to initialize a Python environment in the above folder. This command will create a `.venv` sub-folder.
-3. Activate the new environment just created:
-* On Windows, run `.venv\Scripts\activate.bat`
-* On Linux/Max, run `source .venv\bin\activate`
-* This will activate the new environment and your command prompt will change to reflect the new Python environment is in use. You could see something like:
-`(learning_google_adk) $> `
-4. Run `uv pip install --editable .`. This command will read the `pyproject.toml` file and install all the required modules from it. This will setup your environment from a GitHub clone.
-
-**NOTE:** Repeat steps 3 & 4 everytime you `pull` from the Github repo.
+1. `cd ~/code/learning_google_adk` (Linux/Mac) or `cd c:\code\learning_google_adk` (Windows) folder.
+2. Run `uv sync` to duplicate the environment that was created by me - thats it!
 
 **Part B: setting up API key for use with Google's Gemini models**
 

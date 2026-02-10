@@ -35,12 +35,13 @@ async def run_agent_query(
     agent: Agent,
     query: str,
     session_service: InMemorySessionService,
+    session_id: str,
     user_id: str,
     is_router: bool = False,
 ):
     """Initializes a runner and executes a query for a given agent and session."""
     console.print(
-        f"[green]\n🚀 Running query for agent: '{agent.name}' in session: '{session.id}'...[/green]"
+        f"[green]\n🚀 Running query for agent: '{agent.name}' in session: '{session_id}'...[/green]"
     )
 
     runner = Runner(agent=agent, session_service=session_service, app_name=agent.name)
@@ -49,7 +50,7 @@ async def run_agent_query(
     try:
         async for event in runner.run_async(
             user_id=user_id,
-            session_id=session.id,
+            session_id=session_id,
             new_message=Content(parts=[Part(text=query)], role="user"),
         ):
             if not is_router:

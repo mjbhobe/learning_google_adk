@@ -12,6 +12,7 @@ Components:
 import os
 import re
 import asyncio
+import argparse
 from dotenv import load_dotenv
 
 import google.generativeai as genai
@@ -51,17 +52,37 @@ async def run_day_trip_genie(
     )
     print(f"🗣️ User Query: '{query}'")
 
-    await run_agent_query(agent, query, my_session, user_id)
+    await run_agent_query(
+        agent,
+        query,
+        session_service,
+        my_session.id,
+        user_id,
+    )
 
 
 # --- Initialize our Session Service ---
 # This one service will manage all the different sessions in our notebook.
-session_service = InMemorySessionService()
-my_user_id = "adk_adventurer_001"
-query = "Plan a relaxing and artsy day trip near Mumbai, India. Keep it affordable!"
+# query = "Plan a relaxing and local food tasting trip near Mumbai, India. Keep it affordable!"
 
 
 async def main():
+    # Setup Argument Parser - add optional -q / --query argument to allow users to
+    # input their own trip query
+    parser = argparse.ArgumentParser(description="Run the Day Trip Genie Agent")
+    parser.add_argument(
+        "-q",
+        "--query",
+        type=str,
+        help="The query for the agent (e.g., 'Plan a trip to Delhi')",
+        default="Plan a relaxing and local food tasting trip near Mumbai, India. Keep it affordable!",
+    )
+
+    args = parser.parse_args()
+    session_service = InMemorySessionService()
+    my_user_id = "adk_adventurer_001"
+    query = args.query
+
     await run_day_trip_genie(day_trip_agent, session_service, my_user_id, query)
 
 
