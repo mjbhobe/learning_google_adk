@@ -28,7 +28,7 @@ day_trip_agent:
     RETURN itinerary in MARKDOWN FORMAT with clear time blocks and specific venue names.
 
 weather_agent:
-  model: gemini-2.5-flash
+  model: gemini-2.0-flash
   description: >
     A trip planner that checks the real-time weather before making suggestions.  
   instruction: >

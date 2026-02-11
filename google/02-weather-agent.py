@@ -253,7 +253,7 @@ weather_agent = Agent(
     model=agent_config["model"],
     description=agent_config["description"],
     instruction=agent_config["instruction"],
-    tools=[get_live_weather_forecast],
+    tools=[get_live_weather_global],
 )
 
 
