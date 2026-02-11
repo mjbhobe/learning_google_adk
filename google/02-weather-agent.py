@@ -1,8 +1,7 @@
 """
-01-day-trip-genie.py
+02-weather-agent.py
 
-This is an example of a simple stand-alone agent that can generate full-day trip itineraries based
-on mood, interests, and budget. It utilizes INTERNAL Google Search tool to gather information about local attractions, restaurants, and activities to create a personalized itinerary.
+This example illustrates
 
 Components:
 * Agent: The brain of the operation, defined by its instructions, tools, and the AI model it uses.
@@ -16,8 +15,6 @@ import os
 import re
 import asyncio
 import argparse
-from rich.console import Console
-from rich.markdown import Markdown
 from dotenv import load_dotenv
 
 import google.generativeai as genai
@@ -66,8 +63,6 @@ async def run_day_trip_genie(
     )
 
 
-# --- Initialize our Session Service ---
-# This one service will manage all the different sessions in our notebook.
 # query = "Plan a relaxing and local food tasting trip near Mumbai, India. Keep it affordable!"
 
 
@@ -86,22 +81,20 @@ async def main():
         default="Plan a relaxing and local food tasting trip near Mumbai, India. Keep it affordable!",
     )
 
-    console = Console()
     args = parser.parse_args()
+
+    # --- Initialize our Session Service ---
+    # This one service will manage all the different sessions for our agent
     session_service = InMemorySessionService()
     my_user_id = "adk_adventurer_001"
     query = args.query
 
-    final_response = await run_agent_query(
+    await run_agent_query(
         day_trip_agent,
         query,
         session_service,
         my_user_id,
     )
-    console.print("[green]\n" + "-" * 50 + "\n[/green]")
-    console.print("[green]✅ Final Response:[/green]")
-    console.print(Markdown(final_response))
-    console.print("[green]\n" + "-" * 50 + "\n[/green]")
 
 
 if __name__ == "__main__":

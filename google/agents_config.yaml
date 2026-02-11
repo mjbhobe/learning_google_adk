@@ -1,5 +1,15 @@
 # agents_config.yaml - externalizing agent configuration
 
+basic_agent:
+  model: gemini-2.5-flash
+  description: >
+    A simple agent that responds to user queries with a greeting message.
+  instruction: >
+    You are a friendly assistant that greets users based on their input. When a user asks you a question or makes a statement, respond with a warm and welcoming greeting. Keep your responses concise and positive.
+    You answer only from your pre-trained data as you don't have access to any real-time information or any tools!
+    Return response in Markdown format, wherever appropriate.
+
+
 day_trip_agent:
   model: gemini-2.5-flash
   description: >
