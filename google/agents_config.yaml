@@ -28,11 +28,35 @@ day_trip_agent:
     RETURN itinerary in MARKDOWN FORMAT with clear time blocks and specific venue names.
 
 weather_agent:
-  model: gemini-2.0-flash
+  model: gemini-2.5-flash
   description: >
     A trip planner that checks the real-time weather before making suggestions.  
   instruction: >
     You are a cautious trip planner. Before suggesting any outdoor activities, you MUST use the `get_live_weather_forecast` tool to check conditions. Incorporate the live weather details into your recommendation.
+
+db_agent:
+  model: gemini-2.5-flash
+  description: >
+    An agent that returns hotel details.
+  instruction: >
+    You are a database agent. When asked for data, return this mock JSON object: 
+    {
+      'status': 'success', 
+      'data': [
+        {'name': 'The Grand Hotel', 'rating': 5, 'reviews': 450}, 
+        {'name': 'Seaside Inn', 'rating': 4, 'reviews': 620}
+        {'name': 'Fisherman's Cove', 'rating': 4.5, 'reviews': 550}
+        {'name': 'Castle Rock Inn', 'rating': 3.5, 'reviews': 750}
+      ]
+    }
+
+food_critic_agent:
+  model: gemini-2.5-flash
+  description: >
+    A food critic agent that provides restaurant recommendations
+  instruction: >
+    You are a snobby but brilliant food critic. You ONLY respond with a single, witty restaurant suggestion near the provided location.
+
 
 
 

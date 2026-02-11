@@ -1,7 +1,7 @@
 """
-02-weather-agent.py
+02-agent-with-custom-tools.py
 
-This example illustrates
+This example illustrates how to use an Agent with a custom tool (i.e. a function we code and use as a tool, as compared to usig Google supplied tools such as google_search).
 
 Components:
 * Agent: The brain of the operation, defined by its instructions, tools, and the AI model it uses.
@@ -49,7 +49,9 @@ San Jose, CA
 Los Angeles, CA
 Seattle, WA
 Redmond, WA
+Portland, OR
 Las Vegas, NV
+Phoenix, AZ
 Denver, CO
 Chicago, IL
 Houston, TX
@@ -71,15 +73,27 @@ Bonn, Germany
 Frankfurt, Germany
 Rome, Italy
 Milan, Italy
+Cairo, Egypt
+Cape Town, South Africa
+Johannesburg, South Africa
+Durban, South Africa
 Dubai, UAE
 Abu Dhabi, UAE
 Sharjah, UAE
 Mumbai, India
+Pune, India
+Nashik, India
 New Delhi, India
+Amritsar, India
+Jaipur, India
+Udaipur, India
+Jodhpur, India
+Indore, India
 Bangalore, India
 Bengaluru, India
 Chennai, India
 Hyderabad, India
+Kochi, India
 Panjim, India
 Margao, India
 Vasco da Gama, India
@@ -225,7 +239,23 @@ def get_live_weather_global(location_name: str) -> dict:
     params = {
         "latitude": lat,
         "longitude": lon,
-        "current": ["temperature_2m", "relative_humidity_2m", "weather_code"],
+        # "current": ["temperature_2m", "relative_humidity_2m", "weather_code"],
+        # Current: Real-time snapshots (comprehensive)
+        "current": [
+            "temperature_2m",
+            "relative_humidity_2m",
+            "apparent_temperature",
+            "is_day",
+            "precipitation",
+            "weather_code",
+            "cloud_cover",
+            "pressure_msl",
+            "wind_speed_10m",
+        ],
+        # # Hourly: Next-gen details (Soil, Solar, Visibility)
+        # "hourly": "temperature_2m,precipitation_probability,cloud_cover,visibility,uv_index,is_day,soil_temperature_0cm,shortwave_radiation",
+        # # Daily: High-level summaries
+        # "daily": "weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,daylight_duration",
         "timezone": "auto",
     }
 
@@ -236,12 +266,27 @@ def get_live_weather_global(location_name: str) -> dict:
         data = response.json()
 
         current = data["current"]
+        # return {
+        #     "location": search_key,
+        #     "status": "success",
+        #     "temperature": f"{current['temperature_2m']}°C",
+        #     "humidity": f"{current['relative_humidity_2m']}%",
+        #     "lat_lon": f"{lat}, {lon}",
+        # }
+
+        # to return comprehensive current weather data, use following code - assuming
+        # you specified all params above in the API call:
         return {
             "location": search_key,
             "status": "success",
             "temperature": f"{current['temperature_2m']}°C",
+            "feels_like": f"{current['apparent_temperature']}°C",
             "humidity": f"{current['relative_humidity_2m']}%",
-            "lat_lon": f"{lat}, {lon}",
+            "conditions": f"Code {current['weather_code']}",
+            "cloud_cover": f"{current['cloud_cover']}%",
+            "pressure": f"{current['pressure_msl']} hPa",
+            "precipitation": f"{current['precipitation']} mm",
+            "wind_speed": f"{current['wind_speed_10m']} m/s",
         }
     except requests.exceptions.RequestException as e:
         return {"status": "error", "message": f"API request failed: {e}"}
@@ -281,6 +326,7 @@ async def main():
             session_service,
             my_user_id,
         )
+
         console.print("[green]\n" + "-" * 50 + "\n[/green]")
         console.print("[green]🌤️ Live Weather:[/green]")
         console.print(Markdown(final_response))

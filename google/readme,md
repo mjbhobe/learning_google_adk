@@ -7,7 +7,21 @@ This is a tutorial from Google & can be found (here)[https://codelabs.developers
 ```bash
 # create a folder to host your code (e.g. ~/adk_projects)
 cd ~/adk_projects  # replace adk_projects with your folder name
+```
+Create a `requirements.txt` file inside `~/adk_projects` with the following contents:
 
+```
+google-adk
+google-generativeai
+psutil
+python-dotenv
+python-weather
+pyyaml
+rich
+yfinance
+```
+Proceed with the next steps as below (to be run inside the `~/adk_projects` folder)
+```bash
 # Create a virtual environment
 uv venv . --python 3.12
 
@@ -18,11 +32,29 @@ uv venv . --python 3.12
 # source .venv/bin/activate
 
 # Install dependencies
-uv add google-adk google-genai rich
+uv add -r requirements.txt
 ```
 
-### Run the code  << TO DO >>
+### Run the code 
 
 ```bash
-python -m tool_agent.agent
+# this example shows you how to run 
+# any one of the files, for example 00-basic_agent.py
+
+# follow steps below in a command/bash shell
+
+cd ~/adk_project
+source ~/adk_project/.venv/Scripts/activate
+uv run 00-basic-agent.py
 ```
+
+### Roadmap
+Following is the step-by-step roadmap we'll follow to build our competency with the [Google ADK](https://google.github.io/adk-docs/)
+
+![Google ADK Roadmap](./images/adk_tutorial_roadmap.png)
+
+Here's what we'll learn:
+* **A basic agent** ([00-basic-agent-no-tools.py](00-basic-agent-no-tools.py)): a basic agent that responds to user's questions based on pre-trained data only. It does not use any tools.
+* **An agent using Google supplied tools** ([01-agent-with-internal-tools.py](01-01-agent-with-internal-tools.py)): an agent that plans a 1 day itinarary based on user prompt, which uses Google search tool (supplied with ADK) to get external information.
+* **An agent with custom tools** ([02-agent-with-custom-tools.py](02-agent-with-custom-tools.py)): an agent that uses custom tools (i.e. a Python function we code as a tool).
+* **Agent as a tool** ([03-agent-as-a-tool.py](03-agent-as-a-tool.py)): build complex systems where a primary agent, often called an Orchestrator or Router, delegates tasks to other, more focused agents.

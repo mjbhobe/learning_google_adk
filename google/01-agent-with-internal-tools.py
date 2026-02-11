@@ -1,5 +1,5 @@
 """
-01-day-trip-genie.py
+01-agent-with-internal-tools.py
 
 This is an example of a simple stand-alone agent that can generate full-day trip itineraries based
 on mood, interests, and budget. It utilizes INTERNAL Google Search tool to gather information about local attractions, restaurants, and activities to create a personalized itinerary.

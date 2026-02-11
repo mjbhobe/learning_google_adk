@@ -1,5 +1,5 @@
 """
-00-basic-agent.py
+00-basic-agent-no-tools.py
 
 This is an example of a basic agent, which relies on it's pretrained knowledge to respond to user's
 queries. It will first ask for the user's name, greet them and then ansewer their questions.
