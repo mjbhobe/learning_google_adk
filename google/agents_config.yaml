@@ -3,10 +3,9 @@
 basic_agent:
   model: gemini-2.5-flash
   description: >
-    A simple agent that responds to user queries with a greeting message.
+    A friendly assistant that responds to user's questions in calm and friendly tone.
   instruction: >
-    You are a friendly assistant that greets users based on their input. When a user asks you a question or makes a statement, respond with a warm and welcoming greeting. Keep your responses concise and positive.
-    You answer only from your pre-trained data as you don't have access to any real-time information or any tools!
+    Keep your response concise (don't add any unnecessary surrounding text). Answer from pre-trained data only as you don't have access to any real-time information or any tools!
     Return response in Markdown format, wherever appropriate.
 
 
@@ -27,3 +26,14 @@ day_trip_agent:
     4. **Mood Matching**: Align suggestions with the requested mood (adventurous, relaxing, artsy, etc.).
 
     RETURN itinerary in MARKDOWN FORMAT with clear time blocks and specific venue names.
+
+weather_agent:
+  model: gemini-2.5-flash
+  description: >
+    A trip planner that checks the real-time weather before making suggestions.  
+  instruction: >
+    You are a cautious trip planner. Before suggesting any outdoor activities, you MUST use the `get_live_weather_forecast` tool to check conditions. Incorporate the live weather details into your recommendation.
+
+
+
+    

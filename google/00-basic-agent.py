@@ -41,26 +41,27 @@ async def main():
 
     query = ""
     while True:
-        Prompt.ask(
+        query = Prompt.ask(
             "[bright_yellow]Your question (or type 'exit' or press Enter to quit): [/bright_yellow]",
             default="exit",
         )
-        query = input()
+        # query = input()
         if query.strip().lower() == "exit":
-            console.print("[bright yellow]Goodbye![/bright yellow]")
+            console.print("[bright_yellow]Goodbye![/bright_yellow]")
             break
 
         console.print(f"[green]🗣️ User Query:[/green] '{query}'")
 
-        # final_response = await run_agent_query(
-        #     query,
-        #     session_service,
-        #     my_user_id,
-        # )
-        # console.print("[green]\n" + "-" * 50 + "\n[/green]")
-        # console.print("[green]✅Response:[/green]")
-        # console.print(Markdown(final_response))
-        # console.print("[green]\n" + "-" * 50 + "\n[/green]")
+        final_response = await run_agent_query(
+            greeting_agent,
+            query,
+            session_service,
+            my_user_id,
+        )
+        console.print("[green]\n" + "-" * 50 + "\n[/green]")
+        console.print("[green]✅Response:[/green]")
+        console.print(Markdown(final_response))
+        console.print("[green]\n" + "-" * 50 + "\n[/green]")
 
 
 if __name__ == "__main__":
