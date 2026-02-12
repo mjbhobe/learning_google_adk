@@ -26,9 +26,26 @@ genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
 
 agent_config = load_agent_config("basic_agent")
 
+# this is an agent that uses a Google Gemini model
 greeting_agent = Agent(
     name="greeting_agent",
-    model=agent_config["model"],
+    model=agent_config["model"],  # gemini-2.5-flash
+    description=agent_config["description"],
+    instruction=agent_config["instruction"],
+)
+
+# but you can also have an agent that uses an OpenAI or Claude
+# or a non-Google model, like so
+from google.adk.agents import LlmAgent
+from google.adk.models.lite_llm import LiteLlm
+
+# NOTE: ensure you have an entry for OPENAI_API_KEY in your .env file!
+# also add google-adk[extensions] to your local Python environment
+openai_model = LiteLlm(model="openai/gpt-4o")
+
+openai_greeting_agent = LlmAgent(
+    name="openai_greeting_agent",
+    model=openai_model,
     description=agent_config["description"],
     instruction=agent_config["instruction"],
 )
@@ -53,7 +70,8 @@ async def main():
         console.print(f"[green]🗣️ User Query:[/green] '{query}'")
 
         final_response = await run_agent_query(
-            greeting_agent,
+            # greeting_agent,
+            openai_greeting_agent,
             query,
             session_service,
             my_user_id,

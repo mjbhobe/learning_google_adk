@@ -30,6 +30,7 @@ from rich.prompt import Prompt
 
 import google.generativeai as genai
 from google.adk.agents import Agent
+from google.adk.sessions import InMemorySessionService
 from google.adk.tools import ToolContext
 from google.adk.tools.agent_tool import AgentTool
 
@@ -41,7 +42,7 @@ used the following prompt to Google Gemini to generate hotel database
 For each of the cities in the list below, find the names of top 5 hotels in the city. Then generate a JSON output in the format shown below where "city" is the city name from the list below (in all lower case), "hotel" is the name of the hotel you find, "rating" is a floating value between 1-5 (it can have decimal ratings with fraction values equal to 0.25 or 0.50 or 0.75 - for example 3.25 and 3.5 and 3.75 are valid ratings, but 3.4 is not!) and "reviews" is a number (between 0 and 7500)- generate fictitious values for rating & reviews. Return values in JSON format as below:
 
 HOTEL_RATINGS = {
-    {"city": "san francisco", "hotel": "The Grand Hotel", "rating": 4.5, "reviews":750},
+    {"city": "san francisco", "hotel": "The Grand Hotel", "rating": 4.5, "reviews":750},
     {"city": "san francisco", "hotel": "Seaside Inn", "rating": 4.5, "reviews":750},
     .....
 }
@@ -117,16 +118,23 @@ Auckland, New Zealand
 load_dotenv(override=True)
 genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
 
+console = Console()
+
 db_agent_config = load_agent_config("db_agent")
 food_critic_agent_config = load_agent_config("food_critic_agent")
 concierge_agent_config = load_agent_config("concierge_agent")
+orchestration_agent_config = load_agent_config("orchestration_agent")
 
+from google.adk.agents import LlmAgent
+from google.adk.models.lite_llm import LiteLlm
+
+openai_model = LiteLlm(model="openai/gpt-4o")
 
 # db_agent - an agent that fetches mock hotels data (generated
 # using above prompt to Gemini & hard-coded in prompt!)
 db_agent = Agent(
     name="db_agent",
-    model=db_agent_config["model"],
+    model=openai_model,
     description=db_agent_config["description"],
     instruction=db_agent_config["instruction"],
 )
@@ -134,7 +142,7 @@ db_agent = Agent(
 # food_critic_agent - an agent that provides witty restaurant recommendations
 food_critic_agent = Agent(
     name="food_critic_agent",
-    model=food_critic_agent_config["model"],
+    model=openai_model,
     description=food_critic_agent_config["description"],
     instruction=food_critic_agent_config["instruction"],
 )
@@ -143,7 +151,7 @@ food_critic_agent = Agent(
 # uses food_critic for food recommendations
 concierge_agent = Agent(
     name="concierge_agent",
-    model=concierge_agent_config["model"],
+    model=openai_model,
     description=concierge_agent_config["description"],
     instruction=concierge_agent_config["instruction"],
     # uses the food_critic_agent as a tool
@@ -151,23 +159,60 @@ concierge_agent = Agent(
 )
 
 
+# ----------------------------------------------------------
+# tools for the orchestration agent
+# ----------------------------------------------------------
+async def call_db_agent(
+    query: str,
+    tool_context: ToolContext,
+) -> str:
+    print("--- TOOL CALL: call_db_agent ---")
+    agent_tool = AgentTool(agent=db_agent)
+    db_agent_output = await agent_tool.run_async(
+        args={"request": query}, tool_context=tool_context
+    )
+    # Store the retrieved data in the context's state
+    tool_context.state["retrieved_data"] = db_agent_output
+    return db_agent_output
+
+
+async def call_concierge_agent(
+    question: str,
+    tool_context: ToolContext,
+):
+    """
+    After getting data with call_db_agent, use this tool to get travel advice, opinions, or recommendations.
+    """
+    print("--- TOOL CALL: call_concierge_agent ---")
+    # Retrieve the data fetched by the previous tool
+    input_data = tool_context.state.get("retrieved_data", "No data found.")
+
+    # Formulate a new prompt for the concierge, giving it the data context
+    question_with_data = f"""
+    Context: The database returned the following data: {input_data}
+
+    User's Request: {question}
+    """
+
+    agent_tool = AgentTool(agent=concierge_agent)
+    concierge_output = await agent_tool.run_async(
+        args={"request": question_with_data}, tool_context=tool_context
+    )
+    return concierge_output
+
+
+# this is the main orchestration agent, which uses tools that call above agents
+# to do the work. User will interact with this agent
 orchestration_agent = Agent(
     name="trip_data_concierge",
-    model="gemini-2.5-flash",
-    description="Top-level agent that queries a database for travel data, then calls a concierge agent for recommendations.",
+    model=openai_model,
+    description=orchestration_agent_config["description"],
+    instruction=orchestration_agent_config["instruction"],
     tools=[call_db_agent, call_concierge_agent],
-    instruction="""
-    You are a master travel planner who uses data to make recommendations.
-
-    1.  **ALWAYS start with the `call_db_agent` tool** to fetch a list of places (like hotels) that match the user's criteria.
-
-    2.  After you have the data, **use the `call_concierge_agent` tool** to answer any follow-up questions for recommendations, opinions, or advice related to the data you just found.
-    """,
 )
 
 
 async def main():
-    console = Console()
     session_service = InMemorySessionService()
     my_user_id = "adk_adventurer_001"
 
@@ -185,14 +230,14 @@ async def main():
         # console.print(f"[green]🗣️ User Query:[/green] '{query}'")
 
         final_response = await run_agent_query(
-            weather_agent,
+            orchestration_agent,
             query,
             session_service,
             my_user_id,
         )
 
         console.print("[green]\n" + "-" * 50 + "\n[/green]")
-        console.print("[green]🌤️ Live Weather:[/green]")
+        console.print("[green] :[/green]")
         console.print(Markdown(final_response))
         console.print("[green]\n" + "-" * 50 + "\n[/green]")
 

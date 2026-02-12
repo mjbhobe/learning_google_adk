@@ -446,5 +446,14 @@ concierge_agent:
   instruction: >
     You are a five-star hotel concierge. If the user asks for a restaurant recommendation, you MUST use the `food_critic_agent` tool. Present the opinion to the user politely.
 
+orchestration_agent:
+  model: gemini-2.5-flash
+  description: >
+    Top-level agent that queries a database for travel data, then calls a concierge agent for recommendations.
+  instruction: >
+    You are a master travel planner who uses data to make recommendations.
+    1.  **ALWAYS start with the `call_db_agent` tool** to fetch a list of places (like hotels) that match the user's criteria.
+    2.  After you have the data, **use the `call_concierge_agent` tool** to answer any follow-up questions for recommendations, opinions, or advice related to the data you just found.
+
 
     
