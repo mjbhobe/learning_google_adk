@@ -35,15 +35,95 @@ from google.adk.tools.agent_tool import AgentTool
 
 from utils import load_agent_config, run_agent_query
 
+""" 
+used the following prompt to Google Gemini to generate hotel database
+
+For each of the cities in the list below, find the names of top 5 hotels in the city. Then generate a JSON output in the format shown below where "city" is the city name from the list below (in all lower case), "hotel" is the name of the hotel you find, "rating" is a floating value between 1-5 (it can have decimal ratings with fraction values equal to 0.25 or 0.50 or 0.75 - for example 3.25 and 3.5 and 3.75 are valid ratings, but 3.4 is not!) and "reviews" is a number (between 0 and 7500)- generate fictitious values for rating & reviews. Return values in JSON format as below:
+
+HOTEL_RATINGS = {
+    {"city": "san francisco", "hotel": "The Grand Hotel", "rating": 4.5, "reviews":750},
+    {"city": "san francisco", "hotel": "Seaside Inn", "rating": 4.5, "reviews":750},
+    .....
+}
+
+Sunnyvale, CA
+San Francisco, CA
+Lake Tahoe, CA
+San Jose, CA
+Los Angeles, CA
+Seattle, WA
+Redmond, WA
+Portland, OR
+Las Vegas, NV
+Phoenix, AZ
+Denver, CO
+Chicago, IL
+Houston, TX
+Dallas, TX
+Tampa, FL
+Miami, FL
+New York, NY
+Boston, MA
+Washington, DC
+St Louis, MO
+Atlanta, GA
+London, UK
+Liverpool, UK
+Manchester, UK
+Paris, France
+Madrid, Spain
+Berlin, Germany
+Bonn, Germany
+Frankfurt, Germany
+Rome, Italy
+Milan, Italy
+Cairo, Egypt
+Cape Town, South Africa
+Johannesburg, South Africa
+Durban, South Africa
+Dubai, UAE
+Abu Dhabi, UAE
+Sharjah, UAE
+Mumbai, India
+Pune, India
+Nashik, India
+New Delhi, India
+Amritsar, India
+Jaipur, India
+Udaipur, India
+Jodhpur, India
+Indore, India
+Bangalore, India
+Bengaluru, India
+Chennai, India
+Hyderabad, India
+Kochi, India
+Panjim, India
+Margao, India
+Vasco da Gama, India
+Singapore, Singapore
+Tokyo, Japan
+Seoul, South Korea
+Sydney, Australia
+Perth, Australia
+Melbourne, Australia
+Adelaide, Australia
+Christchurch, New Zealand
+Wellington, New Zealand
+Auckland, New Zealand
+"""
+
 # load API keys
 load_dotenv(override=True)
 genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
 
 db_agent_config = load_agent_config("db_agent")
 food_critic_agent_config = load_agent_config("food_critic_agent")
+concierge_agent_config = load_agent_config("concierge_agent")
 
 
-# db_agent - an agent that fetches mock hotels data
+# db_agent - an agent that fetches mock hotels data (generated
+# using above prompt to Gemini & hard-coded in prompt!)
 db_agent = Agent(
     name="db_agent",
     model=db_agent_config["model"],
@@ -54,9 +134,35 @@ db_agent = Agent(
 # food_critic_agent - an agent that provides witty restaurant recommendations
 food_critic_agent = Agent(
     name="food_critic_agent",
-    model=food_critic_agent["model"],
-    description=food_critic_agent["description"],
-    instruction=food_critic_agent["instruction"],
+    model=food_critic_agent_config["model"],
+    description=food_critic_agent_config["description"],
+    instruction=food_critic_agent_config["instruction"],
+)
+
+# concierge_agent - an agent that provided recommendations
+# uses food_critic for food recommendations
+concierge_agent = Agent(
+    name="concierge_agent",
+    model=concierge_agent_config["model"],
+    description=concierge_agent_config["description"],
+    instruction=concierge_agent_config["instruction"],
+    # uses the food_critic_agent as a tool
+    tools=[AgentTool(agent=food_critic_agent)],
+)
+
+
+orchestration_agent = Agent(
+    name="trip_data_concierge",
+    model="gemini-2.5-flash",
+    description="Top-level agent that queries a database for travel data, then calls a concierge agent for recommendations.",
+    tools=[call_db_agent, call_concierge_agent],
+    instruction="""
+    You are a master travel planner who uses data to make recommendations.
+
+    1.  **ALWAYS start with the `call_db_agent` tool** to fetch a list of places (like hotels) that match the user's criteria.
+
+    2.  After you have the data, **use the `call_concierge_agent` tool** to answer any follow-up questions for recommendations, opinions, or advice related to the data you just found.
+    """,
 )
 
 

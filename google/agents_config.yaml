@@ -40,15 +40,397 @@ db_agent:
     An agent that returns hotel details.
   instruction: >
     You are a database agent. When asked for data, return this mock JSON object: 
-    {
-      'status': 'success', 
-      'data': [
-        {'name': 'The Grand Hotel', 'rating': 5, 'reviews': 450}, 
-        {'name': 'Seaside Inn', 'rating': 4, 'reviews': 620}
-        {'name': 'Fisherman's Cove', 'rating': 4.5, 'reviews': 550}
-        {'name': 'Castle Rock Inn', 'rating': 3.5, 'reviews': 750}
-      ]
-    }
+    [
+      {"city": "sunnyvale", "hotel": "The Domain Hotel", "rating": 4.25, "reviews": 1240},
+      {"city": "sunnyvale", "hotel": "Grand Hotel", "rating": 4.50, "reviews": 890},
+      {"city": "sunnyvale", "hotel": "Aloft Sunnyvale", "rating": 4.00, "reviews": 2100},
+      {"city": "sunnyvale", "hotel": "Wild Palms Hotel", "rating": 3.75, "reviews": 1560},
+      {"city": "sunnyvale", "hotel": "AC Hotel by Marriott", "rating": 4.50, "reviews": 620},
+
+      {"city": "san francisco", "hotel": "Fairmont San Francisco", "rating": 4.75, "reviews": 5420},
+      {"city": "san francisco", "hotel": "The Ritz-Carlton", "rating": 4.75, "reviews": 3210},
+      {"city": "san francisco", "hotel": "Hotel Nikko", "rating": 4.50, "reviews": 6800},
+      {"city": "san francisco", "hotel": "The Westin St. Francis", "rating": 4.25, "reviews": 7200},
+      {"city": "san francisco", "hotel": "Palace Hotel", "rating": 4.50, "reviews": 4150},
+
+      {"city": "lake tahoe", "hotel": "The Ritz-Carlton, Lake Tahoe", "rating": 4.75, "reviews": 1850},
+      {"city": "lake tahoe", "hotel": "Edgewood Tahoe Resort", "rating": 4.75, "reviews": 2100},
+      {"city": "lake tahoe", "hotel": "Lodge at Edgewood", "rating": 4.50, "reviews": 940},
+      {"city": "lake tahoe", "hotel": "Hyatt Regency Lake Tahoe", "rating": 4.25, "reviews": 5300},
+      {"city": "lake tahoe", "hotel": "Marriott's Timber Lodge", "rating": 4.50, "reviews": 3800},
+
+      {"city": "san jose", "hotel": "Hotel Valencia Santana Row", "rating": 4.50, "reviews": 3200},
+      {"city": "san jose", "hotel": "Signia by Hilton San Jose", "rating": 4.25, "reviews": 4100},
+      {"city": "san jose", "hotel": "The Westin San Jose", "rating": 4.00, "reviews": 1950},
+      {"city": "san jose", "hotel": "San Jose Marriott", "rating": 4.25, "reviews": 2800},
+      {"city": "san jose", "hotel": "AC Hotel San Jose Downtown", "rating": 4.50, "reviews": 1200},
+
+      {"city": "los angeles", "hotel": "The Beverly Hills Hotel", "rating": 4.75, "reviews": 3100},
+      {"city": "los angeles", "hotel": "InterContinental Los Angeles Downtown", "rating": 4.50, "reviews": 6200},
+      {"city": "los angeles", "hotel": "Hotel Bel-Air", "rating": 5.00, "reviews": 1450},
+      {"city": "los angeles", "hotel": "Shutters on the Beach", "rating": 4.50, "reviews": 2900},
+      {"city": "los angeles", "hotel": "The Westin Bonaventure", "rating": 4.00, "reviews": 7400},
+
+      {"city": "seattle", "hotel": "Four Seasons Hotel Seattle", "rating": 4.75, "reviews": 1200},
+      {"city": "seattle", "hotel": "Fairmont Olympic Hotel", "rating": 4.50, "reviews": 3800},
+      {"city": "seattle", "hotel": "The Edgewater Hotel", "rating": 4.25, "reviews": 4500},
+      {"city": "seattle", "hotel": "Thompson Seattle", "rating": 4.50, "reviews": 2100},
+      {"city": "seattle", "hotel": "Hyatt Regency Seattle", "rating": 4.50, "reviews": 5600},
+
+      {"city": "redmond", "hotel": "Archer Hotel Redmond", "rating": 4.75, "reviews": 950},
+      {"city": "redmond", "hotel": "Seattle Marriott Redmond", "rating": 4.25, "reviews": 1800},
+      {"city": "redmond", "hotel": "Hyatt House Seattle/Redmond", "rating": 4.00, "reviews": 1200},
+      {"city": "redmond", "hotel": "Residence Inn Seattle Redmond", "rating": 4.25, "reviews": 1100},
+      {"city": "redmond", "hotel": "Hilton Garden Inn Redmond", "rating": 4.00, "reviews": 750},
+
+      {"city": "portland", "hotel": "The Nines, a Luxury Collection Hotel", "rating": 4.50, "reviews": 3400},
+      {"city": "portland", "hotel": "The Benson Portland", "rating": 4.25, "reviews": 2900},
+      {"city": "portland", "hotel": "The Ritz-Carlton, Portland", "rating": 4.75, "reviews": 500},
+      {"city": "portland", "hotel": "Hotel Deluxe", "rating": 4.25, "reviews": 2100},
+      {"city": "portland", "hotel": "Ace Hotel Portland", "rating": 4.00, "reviews": 2700},
+
+      {"city": "las vegas", "hotel": "Wynn Las Vegas", "rating": 4.75, "reviews": 7200},
+      {"city": "las vegas", "hotel": "The Venetian Resort", "rating": 4.50, "reviews": 7500},
+      {"city": "las vegas", "hotel": "Bellagio Las Vegas", "rating": 4.50, "reviews": 7450},
+      {"city": "las vegas", "hotel": "Caesars Palace", "rating": 4.25, "reviews": 7300},
+      {"city": "las vegas", "hotel": "Encore at Wynn", "rating": 4.75, "reviews": 5800},
+
+      {"city": "phoenix", "hotel": "Arizona Biltmore", "rating": 4.50, "reviews": 4200},
+      {"city": "phoenix", "hotel": "Royal Palms Resort and Spa", "rating": 4.75, "reviews": 1900},
+      {"city": "phoenix", "hotel": "The Phoenician", "rating": 4.75, "reviews": 3100},
+      {"city": "phoenix", "hotel": "JW Marriott Phoenix Desert Ridge", "rating": 4.50, "reviews": 4800},
+      {"city": "phoenix", "hotel": "Hyatt Regency Phoenix", "rating": 4.00, "reviews": 3600},
+
+      {"city": "denver", "hotel": "The Brown Palace Hotel", "rating": 4.50, "reviews": 3900},
+      {"city": "denver", "hotel": "Four Seasons Hotel Denver", "rating": 4.75, "reviews": 1100},
+      {"city": "denver", "hotel": "The Crawford Hotel", "rating": 4.75, "reviews": 1400},
+      {"city": "denver", "hotel": "Gaylord Rockies Resort", "rating": 4.25, "reviews": 6500},
+      {"city": "denver", "hotel": "The Ritz-Carlton, Denver", "rating": 4.75, "reviews": 1250},
+
+      {"city": "chicago", "hotel": "The Langham, Chicago", "rating": 5.00, "reviews": 2800},
+      {"city": "chicago", "hotel": "The Peninsula Chicago", "rating": 4.75, "reviews": 2400},
+      {"city": "chicago", "hotel": "Waldorf Astoria Chicago", "rating": 4.75, "reviews": 1900},
+      {"city": "chicago", "hotel": "LondonHouse Chicago", "rating": 4.50, "reviews": 6100},
+      {"city": "chicago", "hotel": "Palmer House a Hilton Hotel", "rating": 4.00, "reviews": 7500},
+
+      {"city": "houston", "hotel": "The Post Oak Hotel", "rating": 5.00, "reviews": 1200},
+      {"city": "houston", "hotel": "Four Seasons Hotel Houston", "rating": 4.75, "reviews": 2300},
+      {"city": "houston", "hotel": "Hotel ZaZa Museum District", "rating": 4.50, "reviews": 2900},
+      {"city": "houston", "hotel": "JW Marriott Downtown", "rating": 4.50, "reviews": 1800},
+      {"city": "houston", "hotel": "The Houstonian Hotel", "rating": 4.75, "reviews": 1500},
+
+      {"city": "dallas", "hotel": "The Adolphus", "rating": 4.50, "reviews": 3200},
+      {"city": "dallas", "hotel": "The Ritz-Carlton, Dallas", "rating": 4.75, "reviews": 1800},
+      {"city": "dallas", "hotel": "Hotel ZaZa Dallas", "rating": 4.50, "reviews": 2100},
+      {"city": "dallas", "hotel": "Rosewood Mansion on Turtle Creek", "rating": 4.75, "reviews": 1400},
+      {"city": "dallas", "hotel": "Omni Dallas Hotel", "rating": 4.50, "reviews": 6800},
+
+      {"city": "tampa", "hotel": "The Edition Tampa", "rating": 4.75, "reviews": 850},
+      {"city": "tampa", "hotel": "JW Marriott Tampa Water Street", "rating": 4.75, "reviews": 1900},
+      {"city": "tampa", "hotel": "Epicurean Hotel", "rating": 4.50, "reviews": 2200},
+      {"city": "tampa", "hotel": "Seminole Hard Rock Hotel", "rating": 4.25, "reviews": 7100},
+      {"city": "tampa", "hotel": "Renaissance Tampa International Plaza", "rating": 4.50, "reviews": 2500},
+
+      {"city": "miami", "hotel": "Fontainebleau Miami Beach", "rating": 4.25, "reviews": 7500},
+      {"city": "miami", "hotel": "Four Seasons Hotel at The Surf Club", "rating": 5.00, "reviews": 1100},
+      {"city": "miami", "hotel": "The Setai, Miami Beach", "rating": 4.75, "reviews": 1800},
+      {"city": "miami", "hotel": "Mandarin Oriental, Miami", "rating": 4.50, "reviews": 2400},
+      {"city": "miami", "hotel": "W South Beach", "rating": 4.50, "reviews": 3100},
+
+      {"city": "new york", "hotel": "The Plaza", "rating": 4.50, "reviews": 5600},
+      {"city": "new york", "hotel": "The Ritz-Carlton Central Park", "rating": 4.75, "reviews": 2100},
+      {"city": "new york", "hotel": "Baccarat Hotel", "rating": 4.75, "reviews": 1400},
+      {"city": "new york", "hotel": "Aman New York", "rating": 5.00, "reviews": 450},
+      {"city": "new york", "hotel": "Park Hyatt New York", "rating": 4.75, "reviews": 2800},
+
+      {"city": "boston", "hotel": "Boston Harbor Hotel", "rating": 4.75, "reviews": 2900},
+      {"city": "boston", "hotel": "The Newbury Boston", "rating": 4.75, "reviews": 1200},
+      {"city": "boston", "hotel": "Four Seasons Hotel Boston", "rating": 4.75, "reviews": 2100},
+      {"city": "boston", "hotel": "Encore Boston Harbor", "rating": 4.50, "reviews": 6800},
+      {"city": "boston", "hotel": "The Liberty Hotel", "rating": 4.25, "reviews": 4100},
+
+      {"city": "washington", "hotel": "The Hay-Adams", "rating": 4.75, "reviews": 1900},
+      {"city": "washington", "hotel": "Waldorf Astoria Washington DC", "rating": 4.75, "reviews": 1500},
+      {"city": "washington", "hotel": "The Watergate Hotel", "rating": 4.25, "reviews": 3200},
+      {"city": "washington", "hotel": "Four Seasons Hotel Washington DC", "rating": 4.75, "reviews": 2100},
+      {"city": "washington", "hotel": "InterContinental Washington DC - The Wharf", "rating": 4.50, "reviews": 2800},
+
+      {"city": "st louis", "hotel": "Four Seasons Hotel St. Louis", "rating": 4.75, "reviews": 1800},
+      {"city": "st louis", "hotel": "The Ritz-Carlton, St. Louis", "rating": 4.75, "reviews": 1400},
+      {"city": "st louis", "hotel": "Angad Arts Hotel", "rating": 4.25, "reviews": 1950},
+      {"city": "st louis", "hotel": "St. Louis Union Station Hotel", "rating": 4.25, "reviews": 5600},
+      {"city": "st louis", "hotel": "The Chase Park Plaza", "rating": 4.50, "reviews": 3800},
+
+      {"city": "atlanta", "hotel": "The St. Regis Atlanta", "rating": 4.75, "reviews": 2100},
+      {"city": "atlanta", "hotel": "Four Seasons Hotel Atlanta", "rating": 4.75, "reviews": 1900},
+      {"city": "atlanta", "hotel": "Waldorf Astoria Atlanta Buckhead", "rating": 4.75, "reviews": 1100},
+      {"city": "atlanta", "hotel": "The Whitley", "rating": 4.50, "reviews": 3200},
+      {"city": "atlanta", "hotel": "Omni Hotel at The Battery Atlanta", "rating": 4.50, "reviews": 4800},
+
+      {"city": "london", "hotel": "The Savoy", "rating": 4.75, "reviews": 6800},
+      {"city": "london", "hotel": "The Ritz London", "rating": 4.75, "reviews": 4200},
+      {"city": "london", "hotel": "Claridge's", "rating": 5.00, "reviews": 2900},
+      {"city": "london", "hotel": "The Langham, London", "rating": 4.75, "reviews": 3800},
+      {"city": "london", "hotel": "Shangri-La The Shard", "rating": 4.75, "reviews": 5400},
+
+      {"city": "liverpool", "hotel": "The Municipal Hotel Liverpool", "rating": 4.50, "reviews": 1200},
+      {"city": "liverpool", "hotel": "Titanic Hotel Liverpool", "rating": 4.50, "reviews": 5900},
+      {"city": "liverpool", "hotel": "Hope Street Hotel", "rating": 4.50, "reviews": 3100},
+      {"city": "liverpool", "hotel": "Pullman Liverpool", "rating": 4.50, "reviews": 4200},
+      {"city": "liverpool", "hotel": "Hard Days Night Hotel", "rating": 4.25, "reviews": 4800},
+
+      {"city": "manchester", "hotel": "The Midland", "rating": 4.25, "reviews": 7100},
+      {"city": "manchester", "hotel": "The Lowry Hotel", "rating": 4.50, "reviews": 2800},
+      {"city": "manchester", "hotel": "Kimpton Clocktower Hotel", "rating": 4.50, "reviews": 4200},
+      {"city": "manchester", "hotel": "Dakota Manchester", "rating": 4.75, "reviews": 3100},
+      {"city": "manchester", "hotel": "Stock Exchange Hotel", "rating": 4.75, "reviews": 950},
+
+      {"city": "paris", "hotel": "The Ritz Paris", "rating": 5.00, "reviews": 2400},
+      {"city": "paris", "hotel": "Four Seasons Hotel George V", "rating": 5.00, "reviews": 3100},
+      {"city": "paris", "hotel": "Hôtel Plaza Athénée", "rating": 4.75, "reviews": 2100},
+      {"city": "paris", "hotel": "Shangri-La Paris", "rating": 4.75, "reviews": 1800},
+      {"city": "paris", "hotel": "Le Meurice", "rating": 4.75, "reviews": 1600},
+
+      {"city": "madrid", "hotel": "Four Seasons Hotel Madrid", "rating": 4.75, "reviews": 1400},
+      {"city": "madrid", "hotel": "Mandarin Oriental Ritz", "rating": 4.75, "reviews": 1200},
+      {"city": "madrid", "hotel": "The Westin Palace, Madrid", "rating": 4.50, "reviews": 5200},
+      {"city": "madrid", "hotel": "Hotel Ritz by Belmond", "rating": 4.75, "reviews": 2100},
+      {"city": "madrid", "hotel": "Gran Meliá Palacio de los Duques", "rating": 4.75, "reviews": 3400},
+
+      {"city": "berlin", "hotel": "Hotel Adlon Kempinski Berlin", "rating": 4.75, "reviews": 5800},
+      {"city": "berlin", "hotel": "The Ritz-Carlton, Berlin", "rating": 4.75, "reviews": 3200},
+      {"city": "berlin", "hotel": "Waldorf Astoria Berlin", "rating": 4.50, "reviews": 2900},
+      {"city": "berlin", "hotel": "Grand Hyatt Berlin", "rating": 4.50, "reviews": 4100},
+      {"city": "berlin", "hotel": "Hotel de Rome", "rating": 4.75, "reviews": 1500},
+
+      {"city": "bonn", "hotel": "Kameha Grand Bonn", "rating": 4.50, "reviews": 3800},
+      {"city": "bonn", "hotel": "Bonn Marriott Hotel", "rating": 4.25, "reviews": 2100},
+      {"city": "bonn", "hotel": "Dorint Hotel Bonn", "rating": 4.00, "reviews": 2500},
+      {"city": "bonn", "hotel": "Ameron Bonn Hotel Königshof", "rating": 4.25, "reviews": 1800},
+      {"city": "bonn", "hotel": "Maritim Hotel Bonn", "rating": 4.00, "reviews": 3300},
+
+      {"city": "frankfurt", "hotel": "Jumeirah Frankfurt", "rating": 4.75, "reviews": 2400},
+      {"city": "frankfurt", "hotel": "Steigenberger Frankfurter Hof", "rating": 4.50, "reviews": 4100},
+      {"city": "frankfurt", "hotel": "Sofitel Frankfurt Opera", "rating": 4.75, "reviews": 1800},
+      {"city": "frankfurt", "hotel": "JW Marriott Hotel Frankfurt", "rating": 4.50, "reviews": 2100},
+      {"city": "frankfurt", "hotel": "Rocco Forte Villa Kennedy", "rating": 4.75, "reviews": 1200},
+
+      {"city": "rome", "hotel": "Hotel Hassler Roma", "rating": 4.75, "reviews": 1800},
+      {"city": "rome", "hotel": "Hotel de Russie", "rating": 4.75, "reviews": 2100},
+      {"city": "rome", "hotel": "The St. Regis Rome", "rating": 4.75, "reviews": 1500},
+      {"city": "rome", "hotel": "Rome Cavalieri, A Waldorf Astoria Hotel", "rating": 4.50, "reviews": 4800},
+      {"city": "rome", "hotel": "Hotel Eden", "rating": 4.75, "reviews": 1200},
+
+      {"city": "milan", "hotel": "Four Seasons Hotel Milano", "rating": 4.75, "reviews": 1900},
+      {"city": "milan", "hotel": "Armani Hotel Milano", "rating": 4.50, "reviews": 1600},
+      {"city": "milan", "hotel": "Park Hyatt Milan", "rating": 4.75, "reviews": 2200},
+      {"city": "milan", "hotel": "Bulgari Hotel Milano", "rating": 4.75, "reviews": 1400},
+      {"city": "milan", "hotel": "Mandarin Oriental, Milan", "rating": 4.75, "reviews": 1500},
+
+      {"city": "cairo", "hotel": "Marriott Mena House", "rating": 4.75, "reviews": 5200},
+      {"city": "cairo", "hotel": "Four Seasons Hotel Cairo at Nile Plaza", "rating": 4.75, "reviews": 3400},
+      {"city": "cairo", "hotel": "The Nile Ritz-Carlton", "rating": 4.75, "reviews": 2800},
+      {"city": "cairo", "hotel": "Sofitel Cairo Nile El Gezirah", "rating": 4.50, "reviews": 4100},
+      {"city": "cairo", "hotel": "Kempinski Nile Hotel", "rating": 4.50, "reviews": 3100},
+
+      {"city": "cape town", "hotel": "The Silo Hotel", "rating": 5.00, "reviews": 850},
+      {"city": "cape town", "hotel": "One&Only Cape Town", "rating": 4.75, "reviews": 2900},
+      {"city": "cape town", "hotel": "The Twelve Apostles Hotel", "rating": 4.75, "reviews": 2400},
+      {"city": "cape town", "hotel": "Belmond Mount Nelson Hotel", "rating": 4.75, "reviews": 3100},
+      {"city": "cape town", "hotel": "Taj Cape Town", "rating": 4.50, "reviews": 2600},
+
+      {"city": "johannesburg", "hotel": "Four Seasons Hotel The Westcliff", "rating": 4.75, "reviews": 1800},
+      {"city": "johannesburg", "hotel": "The Saxon Hotel", "rating": 5.00, "reviews": 1100},
+      {"city": "johannesburg", "hotel": "The Michelangelo Hotel", "rating": 4.50, "reviews": 3200},
+      {"city": "johannesburg", "hotel": "Sandton Sun", "rating": 4.25, "reviews": 4500},
+      {"city": "johannesburg", "hotel": "Radisson Blu Gautrain Hotel", "rating": 4.25, "reviews": 3800},
+
+      {"city": "durban", "hotel": "The Oyster Box", "rating": 5.00, "reviews": 4200},
+      {"city": "durban", "hotel": "Beverly Hills Hotel", "rating": 4.75, "reviews": 1900},
+      {"city": "durban", "hotel": "Southern Sun Elangeni & Maharani", "rating": 4.25, "reviews": 6800},
+      {"city": "durban", "hotel": "Hilton Durban", "rating": 4.00, "reviews": 3100},
+      {"city": "durban", "hotel": "Radisson Blu Hotel, Durban Umhlanga", "rating": 4.50, "reviews": 1200},
+
+      {"city": "dubai", "hotel": "Burj Al Arab Jumeirah", "rating": 5.00, "reviews": 6200},
+      {"city": "dubai", "hotel": "Atlantis, The Palm", "rating": 4.50, "reviews": 7500},
+      {"city": "dubai", "hotel": "Armani Hotel Dubai", "rating": 4.75, "reviews": 2800},
+      {"city": "dubai", "hotel": "Jumeirah Al Naseem", "rating": 4.75, "reviews": 3100},
+      {"city": "dubai", "hotel": "Address Downtown", "rating": 4.75, "reviews": 4500},
+
+      {"city": "abu dhabi", "hotel": "Emirates Palace Mandarin Oriental", "rating": 5.00, "reviews": 5400},
+      {"city": "abu dhabi", "hotel": "The St. Regis Saadiyat Island Resort", "rating": 4.75, "reviews": 3200},
+      {"city": "abu dhabi", "hotel": "W Abu Dhabi - Yas Island", "rating": 4.50, "reviews": 4100},
+      {"city": "abu dhabi", "hotel": "Rosewood Abu Dhabi", "rating": 4.75, "reviews": 1900},
+      {"city": "abu dhabi", "hotel": "Zaya Nurai Island", "rating": 4.75, "reviews": 1100},
+
+      {"city": "sharjah", "hotel": "The Chedi Al Bait", "rating": 4.75, "reviews": 850},
+      {"city": "sharjah", "hotel": "Sheraton Sharjah Beach Resort", "rating": 4.25, "reviews": 3200},
+      {"city": "sharjah", "hotel": "Pullman Sharjah", "rating": 4.25, "reviews": 1400},
+      {"city": "sharjah", "hotel": "Coral Beach Resort Sharjah", "rating": 4.00, "reviews": 2900},
+      {"city": "sharjah", "hotel": "Four Points by Sheraton Sharjah", "rating": 4.25, "reviews": 1800},
+
+      {"city": "mumbai", "hotel": "The Taj Mahal Palace", "rating": 5.00, "reviews": 7200},
+      {"city": "mumbai", "hotel": "The Oberoi, Mumbai", "rating": 4.75, "reviews": 3100},
+      {"city": "mumbai", "hotel": "JW Marriott Mumbai Sahar", "rating": 4.75, "reviews": 5600},
+      {"city": "mumbai", "hotel": "The St. Regis Mumbai", "rating": 4.75, "reviews": 4200},
+      {"city": "mumbai", "hotel": "Trident Nariman Point", "rating": 4.50, "reviews": 6800},
+
+      {"city": "pune", "hotel": "JW Marriott Hotel Pune", "rating": 4.75, "reviews": 5800},
+      {"city": "pune", "hotel": "The Ritz-Carlton, Pune", "rating": 4.75, "reviews": 1400},
+      {"city": "pune", "hotel": "Conrad Pune", "rating": 4.75, "reviews": 3200},
+      {"city": "pune", "hotel": "Blue Diamond - IHCL SeleQtions", "rating": 4.50, "reviews": 2900},
+      {"city": "pune", "hotel": "Hyatt Regency Pune", "rating": 4.25, "reviews": 4100},
+
+      {"city": "nashik", "hotel": "The Gateway Hotel Ambad", "rating": 4.50, "reviews": 2800},
+      {"city": "nashik", "hotel": "Radisson Blu Hotel & Spa", "rating": 4.50, "reviews": 1500},
+      {"city": "nashik", "hotel": "Courtyard by Marriott Nashik", "rating": 4.25, "reviews": 1100},
+      {"city": "nashik", "hotel": "Express Inn Nashik", "rating": 4.00, "reviews": 3200},
+      {"city": "nashik", "hotel": "Sula Vineyards - The Source", "rating": 4.75, "reviews": 950},
+
+      {"city": "new delhi", "hotel": "The Leela Palace New Delhi", "rating": 5.00, "reviews": 4200},
+      {"city": "new delhi", "hotel": "The Lodhi", "rating": 4.75, "reviews": 1800},
+      {"city": "new delhi", "hotel": "The Oberoi, New Delhi", "rating": 5.00, "reviews": 2400},
+      {"city": "new delhi", "hotel": "Taj Mahal, New Delhi", "rating": 4.75, "reviews": 3800},
+      {"city": "new delhi", "hotel": "ITC Maurya", "rating": 4.75, "reviews": 5200},
+
+      {"city": "amritsar", "hotel": "Taj Swarna, Amritsar", "rating": 4.75, "reviews": 2800},
+      {"city": "amritsar", "hotel": "Hyatt Regency Amritsar", "rating": 4.50, "reviews": 3400},
+      {"city": "amritsar", "hotel": "Radisson Blu Hotel Amritsar", "rating": 4.25, "reviews": 4100},
+      {"city": "amritsar", "hotel": "Welcomhotel by ITC Hotels", "rating": 4.50, "reviews": 1200},
+      {"city": "amritsar", "hotel": "Fairfield by Marriott Amritsar", "rating": 4.25, "reviews": 1900},
+
+      {"city": "jaipur", "hotel": "Rambagh Palace", "rating": 5.00, "reviews": 3100},
+      {"city": "jaipur", "hotel": "The Oberoi Rajvilas", "rating": 5.00, "reviews": 2400},
+      {"city": "jaipur", "hotel": "Jai Mahal Palace", "rating": 4.75, "reviews": 2900},
+      {"city": "jaipur", "hotel": "Fairmont Jaipur", "rating": 4.75, "reviews": 5800},
+      {"city": "jaipur", "hotel": "ITC Rajputana", "rating": 4.50, "reviews": 4500},
+
+      {"city": "udaipur", "hotel": "Taj Lake Palace", "rating": 5.00, "reviews": 3400},
+      {"city": "udaipur", "hotel": "The Oberoi Udaivilas", "rating": 5.00, "reviews": 2800},
+      {"city": "udaipur", "hotel": "The Leela Palace Udaipur", "rating": 4.75, "reviews": 2100},
+      {"city": "udaipur", "hotel": "Raffles Udaipur", "rating": 5.00, "reviews": 450},
+      {"city": "udaipur", "hotel": "Aurika, Udaipur - Lemon Tree", "rating": 4.50, "reviews": 1900},
+
+      {"city": "jodhpur", "hotel": "Umaid Bhawan Palace", "rating": 5.00, "reviews": 2100},
+      {"city": "jodhpur", "hotel": "Taj Hari Mahal", "rating": 4.50, "reviews": 2800},
+      {"city": "jodhpur", "hotel": "Raas Jodhpur", "rating": 4.75, "reviews": 1400},
+      {"city": "jodhpur", "hotel": "Radisson Jodhpur", "rating": 4.25, "reviews": 3100},
+      {"city": "jodhpur", "hotel": "Indana Palace Jodhpur", "rating": 4.50, "reviews": 2200},
+
+      {"city": "indore", "hotel": "Indore Marriott Hotel", "rating": 4.75, "reviews": 3400},
+      {"city": "indore", "hotel": "Radisson Blu Hotel Indore", "rating": 4.50, "reviews": 4800},
+      {"city": "indore", "hotel": "Sayaji Indore", "rating": 4.25, "reviews": 5900},
+      {"city": "indore", "hotel": "The Park Indore", "rating": 4.50, "reviews": 1200},
+      {"city": "indore", "hotel": "Sheraton Grand Palace Indore", "rating": 4.75, "reviews": 1500},
+
+      {"city": "bangalore", "hotel": "The Ritz-Carlton, Bangalore", "rating": 4.75, "reviews": 2800},
+      {"city": "bangalore", "hotel": "The Leela Palace Bengaluru", "rating": 4.75, "reviews": 4200},
+      {"city": "bangalore", "hotel": "ITC Gardenia", "rating": 4.75, "reviews": 3100},
+      {"city": "bangalore", "hotel": "Shangri-La Bengaluru", "rating": 4.50, "reviews": 3400},
+      {"city": "bangalore", "hotel": "Conrad Bengaluru", "rating": 4.50, "reviews": 2100},
+
+      {"city": "bengaluru", "hotel": "JW Marriott Bengaluru", "rating": 4.75, "reviews": 3900},
+      {"city": "bengaluru", "hotel": "The Taj West End", "rating": 4.75, "reviews": 2400},
+      {"city": "bengaluru", "hotel": "Four Seasons Hotel Bengaluru", "rating": 4.75, "reviews": 1500},
+      {"city": "bengaluru", "hotel": "ITC Windsor", "rating": 4.50, "reviews": 3600},
+      {"city": "bengaluru", "hotel": "Sheraton Grand Bangalore", "rating": 4.50, "reviews": 4800},
+
+      {"city": "chennai", "hotel": "ITC Grand Chola", "rating": 4.75, "reviews": 6800},
+      {"city": "chennai", "hotel": "The Leela Palace Chennai", "rating": 4.75, "reviews": 3100},
+      {"city": "chennai", "hotel": "Taj Fisherman's Cove Resort", "rating": 4.75, "reviews": 2400},
+      {"city": "chennai", "hotel": "Park Hyatt Chennai", "rating": 4.50, "reviews": 2100},
+      {"city": "chennai", "hotel": "Taj Coromandel", "rating": 4.75, "reviews": 2800},
+
+      {"city": "hyderabad", "hotel": "Taj Falaknuma Palace", "rating": 5.00, "reviews": 1800},
+      {"city": "hyderabad", "hotel": "Park Hyatt Hyderabad", "rating": 4.75, "reviews": 2400},
+      {"city": "hyderabad", "hotel": "ITC Kohenur", "rating": 4.75, "reviews": 3200},
+      {"city": "hyderabad", "hotel": "Trident Hyderabad", "rating": 4.50, "reviews": 4100},
+      {"city": "hyderabad", "hotel": "The Westin Hyderabad Mindspace", "rating": 4.50, "reviews": 5600},
+
+      {"city": "kochi", "hotel": "Grand Hyatt Kochi Bolgatty", "rating": 4.75, "reviews": 3400},
+      {"city": "kochi", "hotel": "Kochi Marriott Hotel", "rating": 4.50, "reviews": 3800},
+      {"city": "kochi", "hotel": "Taj Malabar Resort & Spa", "rating": 4.50, "reviews": 2100},
+      {"city": "kochi", "hotel": "Brunton Boatyard", "rating": 4.75, "reviews": 950},
+      {"city": "kochi", "hotel": "Le Méridien Kochi", "rating": 4.25, "reviews": 4500},
+
+      {"city": "panjim", "hotel": "Taj Cidade de Goa Heritage", "rating": 4.50, "reviews": 3100},
+      {"city": "panjim", "hotel": "Goa Marriott Resort & Spa", "rating": 4.50, "reviews": 3800},
+      {"city": "panjim", "hotel": "Vivanta Goa, Panjim", "rating": 4.25, "reviews": 2400},
+      {"city": "panjim", "hotel": "The Crown Goa", "rating": 3.75, "reviews": 1200},
+      {"city": "panjim", "hotel": "Fortune Mira Road Panjim", "rating": 4.00, "reviews": 850},
+
+      {"city": "margao", "hotel": "The Fern Kadamba", "rating": 4.25, "reviews": 1100},
+      {"city": "margao", "hotel": "Alila Diwa Goa", "rating": 4.75, "reviews": 2800},
+      {"city": "margao", "hotel": "ITC Grand Goa Resort", "rating": 4.75, "reviews": 3400},
+      {"city": "margao", "hotel": "Fairfield by Marriott Goa Benaulim", "rating": 4.25, "reviews": 1500},
+      {"city": "margao", "hotel": "Beleza By The Beach", "rating": 4.50, "reviews": 1900},
+
+      {"city": "vasco da gama", "hotel": "Bogmallo Beach Resort", "rating": 4.00, "reviews": 2400},
+      {"city": "vasco da gama", "hotel": "The HQ", "rating": 3.75, "reviews": 1100},
+      {"city": "vasco da gama", "hotel": "Ginger Goa, Vasco", "rating": 3.50, "reviews": 850},
+      {"city": "vasco da gama", "hotel": "Coconut Creek Resort", "rating": 4.25, "reviews": 600},
+      {"city": "vasco da gama", "hotel": "St George's Hotel", "rating": 3.25, "reviews": 450},
+
+      {"city": "singapore", "hotel": "Marina Bay Sands", "rating": 4.50, "reviews": 7500},
+      {"city": "singapore", "hotel": "Raffles Singapore", "rating": 5.00, "reviews": 2400},
+      {"city": "singapore", "hotel": "The Fullerton Hotel", "rating": 4.75, "reviews": 5800},
+      {"city": "singapore", "hotel": "Capella Singapore", "rating": 4.75, "reviews": 1500},
+      {"city": "singapore", "hotel": "Shangri-La Singapore", "rating": 4.50, "reviews": 6200},
+
+      {"city": "tokyo", "hotel": "Aman Tokyo", "rating": 5.00, "reviews": 1200},
+      {"city": "tokyo", "hotel": "Park Hyatt Tokyo", "rating": 4.75, "reviews": 3100},
+      {"city": "tokyo", "hotel": "The Ritz-Carlton, Tokyo", "rating": 4.75, "reviews": 2400},
+      {"city": "tokyo", "hotel": "The Peninsula Tokyo", "rating": 4.75, "reviews": 2800},
+      {"city": "tokyo", "hotel": "Hoshinoya Tokyo", "rating": 4.75, "reviews": 950},
+
+      {"city": "seoul", "hotel": "The Shilla Seoul", "rating": 4.75, "reviews": 3800},
+      {"city": "seoul", "hotel": "Four Seasons Hotel Seoul", "rating": 4.75, "reviews": 2100},
+      {"city": "seoul", "hotel": "Signiel Seoul", "rating": 4.75, "reviews": 1400},
+      {"city": "seoul", "hotel": "Park Hyatt Seoul", "rating": 4.50, "reviews": 1800},
+      {"city": "seoul", "hotel": "Grand Hyatt Seoul", "rating": 4.50, "reviews": 4500},
+
+      {"city": "sydney", "hotel": "Park Hyatt Sydney", "rating": 4.75, "reviews": 2400},
+      {"city": "sydney", "hotel": "The Langham, Sydney", "rating": 4.75, "reviews": 1800},
+      {"city": "sydney", "hotel": "Crown Towers Sydney", "rating": 4.75, "reviews": 1500},
+      {"city": "sydney", "hotel": "Four Seasons Hotel Sydney", "rating": 4.50, "reviews": 6200},
+      {"city": "sydney", "hotel": "Shangri-La Sydney", "rating": 4.25, "reviews": 7100},
+
+      {"city": "perth", "hotel": "COMO The Treasury", "rating": 5.00, "reviews": 850},
+      {"city": "perth", "hotel": "Crown Towers Perth", "rating": 4.75, "reviews": 5400},
+      {"city": "perth", "hotel": "The Ritz-Carlton, Perth", "rating": 4.75, "reviews": 1200},
+      {"city": "perth", "hotel": "The Westin Perth", "rating": 4.50, "reviews": 2100},
+      {"city": "perth", "hotel": "QT Perth", "rating": 4.50, "reviews": 1800},
+
+      {"city": "melbourne", "hotel": "The Langham, Melbourne", "rating": 4.50, "reviews": 6800},
+      {"city": "melbourne", "hotel": "Park Hyatt Melbourne", "rating": 4.75, "reviews": 2100},
+      {"city": "melbourne", "hotel": "The Ritz-Carlton, Melbourne", "rating": 4.75, "reviews": 1100},
+      {"city": "melbourne", "hotel": "W Melbourne", "rating": 4.50, "reviews": 1500},
+      {"city": "melbourne", "hotel": "Crown Towers Melbourne", "rating": 4.50, "reviews": 7500},
+
+      {"city": "adelaide", "hotel": "Mayfair Hotel", "rating": 4.50, "reviews": 3200},
+      {"city": "adelaide", "hotel": "Eos by SkyCity", "rating": 4.75, "reviews": 1100},
+      {"city": "adelaide", "hotel": "The Playford Adelaide", "rating": 4.25, "reviews": 2800},
+      {"city": "adelaide", "hotel": "InterContinental Adelaide", "rating": 4.25, "reviews": 4100},
+      {"city": "adelaide", "hotel": "Oval Hotel", "rating": 4.50, "reviews": 950},
+
+      {"city": "christchurch", "hotel": "The George", "rating": 4.75, "reviews": 1500},
+      {"city": "christchurch", "hotel": "Hotel Montreal", "rating": 4.50, "reviews": 850},
+      {"city": "christchurch", "hotel": "Sudima Christchurch City", "rating": 4.25, "reviews": 1200},
+      {"city": "christchurch", "hotel": "Heritage Christchurch", "rating": 4.25, "reviews": 1800},
+      {"city": "christchurch", "hotel": "Crowne Plaza Christchurch", "rating": 4.50, "reviews": 3100},
+
+      {"city": "wellington", "hotel": "InterContinental Wellington", "rating": 4.50, "reviews": 2900},
+      {"city": "wellington", "hotel": "QT Wellington", "rating": 4.50, "reviews": 2100},
+      {"city": "wellington", "hotel": "Sofitel Wellington", "rating": 4.75, "reviews": 1400},
+      {"city": "wellington", "hotel": "The Bolton Hotel", "rating": 4.50, "reviews": 1800},
+      {"city": "wellington", "hotel": "Museum Art Hotel", "rating": 4.25, "reviews": 1200},
+
+      {"city": "auckland", "hotel": "Park Hyatt Auckland", "rating": 4.75, "reviews": 1500},
+      {"city": "auckland", "hotel": "The Hotel Britomart", "rating": 4.75, "reviews": 1100},
+      {"city": "auckland", "hotel": "Cordis, Auckland", "rating": 4.50, "reviews": 5600},
+      {"city": "auckland", "hotel": "SkyCity Grand Hotel", "rating": 4.50, "reviews": 6800},
+      {"city": "auckland", "hotel": "Hilton Auckland", "rating": 4.50, "reviews": 3200}
+    ]
 
 food_critic_agent:
   model: gemini-2.5-flash
@@ -57,7 +439,12 @@ food_critic_agent:
   instruction: >
     You are a snobby but brilliant food critic. You ONLY respond with a single, witty restaurant suggestion near the provided location.
 
-
+concierge_agent:
+  model: gemini-2.5-flash
+  description: >
+    A concierge agent that provides personalized recommendations for activities, dining, and accommodations.
+  instruction: >
+    You are a five-star hotel concierge. If the user asks for a restaurant recommendation, you MUST use the `food_critic_agent` tool. Present the opinion to the user politely.
 
 
     
