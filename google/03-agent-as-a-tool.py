@@ -132,7 +132,7 @@ openai_model = LiteLlm(model="openai/gpt-4o")
 
 # db_agent - an agent that fetches mock hotels data (generated
 # using above prompt to Gemini & hard-coded in prompt!)
-db_agent = Agent(
+db_agent = LlmAgent(
     name="db_agent",
     model=openai_model,
     description=db_agent_config["description"],
@@ -140,7 +140,7 @@ db_agent = Agent(
 )
 
 # food_critic_agent - an agent that provides witty restaurant recommendations
-food_critic_agent = Agent(
+food_critic_agent = LlmAgent(
     name="food_critic_agent",
     model=openai_model,
     description=food_critic_agent_config["description"],
@@ -149,7 +149,7 @@ food_critic_agent = Agent(
 
 # concierge_agent - an agent that provided recommendations
 # uses food_critic for food recommendations
-concierge_agent = Agent(
+concierge_agent = LlmAgent(
     name="concierge_agent",
     model=openai_model,
     description=concierge_agent_config["description"],

@@ -73,8 +73,8 @@ async def main():
             # greeting_agent,
             openai_greeting_agent,
             query,
-            session_service,
-            my_user_id,
+            session_service=session_service,
+            user_id=my_user_id,
         )
         console.print("[green]\n" + "-" * 50 + "\n[/green]")
         console.print("[green]✅Response:[/green]")

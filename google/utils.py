@@ -74,13 +74,17 @@ async def run_agent_query(
     agent: Agent,
     query: str,
     session_service: InMemorySessionService,
-    user_id: str,
+    session: Session = None,
+    user_id: str = "adk_developer_007",
     is_router: bool = False,
 ) -> str:
     # Create a new, single-use session for this query
-    my_session = await session_service.create_session(
+    my_session: Session = session or await session_service.create_session(
         app_name=agent.name, user_id=user_id
     )
+    # my_session = await session_service.create_session(
+    #     app_name=agent.name, user_id=user_id
+    # )
     console.print(f"[blue]🗣️ User Query: '{query}'[/blue]")
 
     """Initializes a runner and executes a query for a given agent and session."""
