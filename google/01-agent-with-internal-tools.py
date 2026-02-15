@@ -20,7 +20,6 @@ from rich.console import Console
 from rich.markdown import Markdown
 from dotenv import load_dotenv
 
-import google.generativeai as genai
 from google.adk.agents import Agent
 from google.adk.tools import google_search
 from google.adk.runners import Runner
@@ -30,7 +29,6 @@ from utils import load_agent_config, run_agent_query
 
 # load API keys
 load_dotenv(override=True)
-genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
 
 agent_config = load_agent_config("day_trip_agent")
 
@@ -96,7 +94,7 @@ async def main():
         day_trip_agent,
         query,
         session_service,
-        my_user_id,
+        user_id=my_user_id,
     )
     console.print("[green]\n" + "-" * 50 + "\n[/green]")
     console.print("[green]✅ Final Response:[/green]")

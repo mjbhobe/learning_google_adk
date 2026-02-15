@@ -31,45 +31,6 @@ def load_agent_config(agent_name: str, config_path: Path = CONFIG_PATH):
     return config.get(agent_name)
 
 
-async def run_agent_query2(
-    agent: Agent,
-    query: str,
-    session_service: InMemorySessionService,
-    session_id: str,
-    user_id: str,
-    is_router: bool = False,
-):
-    """Initializes a runner and executes a query for a given agent and session."""
-    console.print(
-        f"[green]\n🚀 Running query for agent: '{agent.name}' in session: '{session_id}'...[/green]"
-    )
-
-    runner = Runner(agent=agent, session_service=session_service, app_name=agent.name)
-
-    final_response = ""
-    try:
-        async for event in runner.run_async(
-            user_id=user_id,
-            session_id=session_id,
-            new_message=Content(parts=[Part(text=query)], role="user"),
-        ):
-            if not is_router:
-                # Let's see what the agent is thinking!
-                console.print(f"[yellow]EVENT: {event}[/yellow]")
-            if event.is_final_response():
-                final_response = event.content.parts[0].text
-    except Exception as e:
-        final_response = f"An error occurred: {e}"
-
-    if not is_router:
-        console.print("[green]\n" + "-" * 50 + "\n[/green]")
-        console.print("[green]✅ Final Response:[/green]")
-        console.print(Markdown(final_response))
-        console.print("[green]\n" + "-" * 50 + "\n[/green]")
-
-    return final_response
-
-
 async def run_agent_query(
     agent: Agent,
     query: str,
@@ -78,13 +39,12 @@ async def run_agent_query(
     user_id: str = "adk_developer_007",
     is_router: bool = False,
 ) -> str:
-    # Create a new, single-use session for this query
+    # Create a new, single-use session for this query ONLY if caller
+    # doesn't pass a valid session object.
     my_session: Session = session or await session_service.create_session(
         app_name=agent.name, user_id=user_id
     )
-    # my_session = await session_service.create_session(
-    #     app_name=agent.name, user_id=user_id
-    # )
+
     console.print(f"[blue]🗣️ User Query: '{query}'[/blue]")
 
     """Initializes a runner and executes a query for a given agent and session."""

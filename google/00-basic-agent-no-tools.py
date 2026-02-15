@@ -15,14 +15,12 @@ from rich.console import Console
 from rich.markdown import Markdown
 from rich.prompt import Prompt
 
-import google.generativeai as genai
 from google.adk.agents import Agent
 from google.adk.sessions import InMemorySessionService
 
 from utils import load_agent_config, run_agent_query
 
 load_dotenv(override=True)
-genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
 
 agent_config = load_agent_config("basic_agent")
 
@@ -77,7 +75,7 @@ async def main():
             user_id=my_user_id,
         )
         console.print("[green]\n" + "-" * 50 + "\n[/green]")
-        console.print("[green]✅Response:[/green]")
+        console.print("[green]✅ Response:[/green]")
         console.print(Markdown(final_response))
         console.print("[green]\n" + "-" * 50 + "\n[/green]")
 
