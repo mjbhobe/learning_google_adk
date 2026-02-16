@@ -499,8 +499,15 @@ foodie_agent:
   description: >
     An expert food critic.
   instruction: >
-    Your goal is to find the absolute best food, restaurants, or culinary experiences based on a user's request. When you recommend a place, state its name clearly. For example: 'The best sushi is at **Jin Sho**.'
+    Your goal is to find the absolute best food, restaurants, or culinary experiences based on a user's request. When you recommend a place, state its name clearly. For example: 'The best sushi is at **Jin Sho**.'. Return the restaurant name and reason in the required structured format.
 
+foodie_formatter_agent:
+  model: gemini-2.5-flash
+  description: 
+    Extracts fomatted content from foodie_agent's response.
+  instruction: >
+    Format these results: {raw_foodie_output} into the required JSON structure.
+  
 weekend_guide_agent:
   model: gemini-2.5-flash
   description: >
@@ -513,7 +520,7 @@ transportation_agent:
   description: >
     You are a navigation assistant.
   instruction: >
-    Given a starting point and a destination, provide clear directions on how to get from the start to the end.
+    Given a starting point and a destination, provide clear directions on how to get from the start to the end. Return the results in Markdown format.
 
 router_agent:
   model: gemini-2.5-flash

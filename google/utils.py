@@ -47,23 +47,52 @@ async def web_search(query: str) -> str:
     Args:
         query: The search query string.
     """
+    console.print(f"[cyan]🔍 Calling web_search with query: '{query}'[/cyan]")
+
+    api_key = os.environ.get("TAVILY_API_KEY")
+
+    if not api_key:
+        return "Error: TAVILY_API_KEY is not set in environment variables."
+
+    # Tavily requires a specific JSON payload and Header
     url = "https://api.tavily.com/search"
-    payload = {
-        "api_key": os.environ.get("TAVILY_API_KEY"),
-        "query": query,
-        "search_depth": "smart",
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
     }
 
-    # We use an async context manager for the client
-    async with httpx.AsyncClient() as client:
-        response = await client.post(url, json=payload, timeout=10.0)
-        response.raise_for_status()
-        results = response.json().get("results", [])
+    payload = {
+        "query": query[:400],  # Enforce the 400 char limit
+        "search_depth": "basic",
+        "max_results": 5,
+    }
 
-    formatted_results = [
-        f"Source: {r['url']}\nContent: {r['content']}" for r in results
-    ]
-    return "\n\n".join(formatted_results)
+    async with httpx.AsyncClient() as client:
+        try:
+            # We use json=payload to ensure httpx serializes it correctly
+            response = await client.post(
+                url, headers=headers, json=payload, timeout=10.0
+            )
+
+            if response.status_code != 200:
+                return f"Tavily API Error {response.status_code}: {response.text}"
+
+            data = response.json()
+            results = data.get("results", [])
+
+            if not results:
+                return "No search results found for this query."
+
+            output = []
+            for r in results:
+                output.append(
+                    f"Title: {r.get('title')}\nSource: {r.get('url')}\nContent: {r.get('content')}"
+                )
+
+            return "\n\n---\n\n".join(output)
+
+        except Exception as e:
+            return f"An unexpected error occurred during search: {str(e)}"
 
 
 async def run_agent_query(

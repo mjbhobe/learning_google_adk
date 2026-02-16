@@ -16,13 +16,14 @@ from dotenv import load_dotenv
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.prompt import Prompt
+from pydantic import BaseModel, Field
 
-from google.adk.agents import Agent
+from google.adk.agents import Agent, SequentialAgent
 from google.adk.sessions import InMemorySessionService, Session
 from google.adk.tools import google_search
 from google.adk.tools import ToolContext
 
-from utils import load_agent_config, run_agent_query
+from utils import load_agent_config, run_agent_query, web_search
 
 
 # load API keys
@@ -31,6 +32,7 @@ console = Console()
 
 day_trip_agent_config = load_agent_config("day_trip_agent")
 foodie_agent_config = load_agent_config("foodie_agent")
+foodie_formatter_agent_config = load_agent_config("foodie_formatter_agent")
 weekend_guide_agent_config = load_agent_config("weekend_guide_agent")
 transportation_agent_config = load_agent_config("transportation_agent")
 router_agent_config = load_agent_config("router_agent")
@@ -50,8 +52,16 @@ day_trip_agent = LlmAgent(
     model=openai_model,
     description=day_trip_agent_config["description"],
     instruction=day_trip_agent_config["instruction"],
-    tools=[google_search],
+    tools=[web_search],
 )
+
+
+# we will force structured data from the food_agent, which
+# returns restaurant recommendations (i.e. name & reason for choosing this restaurant)
+class FoodieResponse(BaseModel):
+    restaurant_name: str = Field(description="The name of the recommended restaurant")
+    reason: str = Field(description="Brief reason why this was chosen")
+
 
 foodie_agent = LlmAgent(
     name="foodie_agent",
@@ -59,7 +69,24 @@ foodie_agent = LlmAgent(
     model=openai_model,
     description=foodie_agent_config["description"],
     instruction=foodie_agent_config["instruction"],
-    tools=[google_search],
+    tools=[web_search],
+    # output_schema=FoodieResponse,
+    output_key="raw_foodie_output",  # This is the "magic" key for the session state
+)
+
+foodie_formatter_agent = LlmAgent(
+    name="foodie_formatter_agent",
+    # model=foodie_agent_config["model"],
+    model=openai_model,
+    description=foodie_formatter_agent_config["description"],
+    instruction=foodie_formatter_agent_config["instruction"],
+    output_schema=FoodieResponse,
+    output_key="structured_foodie_data",  # This is the "magic" key for the session state
+)
+
+foodie_flow_agent = SequentialAgent(
+    name="foodie_sequential_pipeline",
+    sub_agents=[foodie_agent, foodie_formatter_agent],
 )
 
 weekend_guide_agent = LlmAgent(
@@ -68,7 +95,7 @@ weekend_guide_agent = LlmAgent(
     model=openai_model,
     description=weekend_guide_agent_config["description"],
     instruction=weekend_guide_agent_config["instruction"],
-    tools=[google_search],
+    tools=[web_search],
 )
 
 transportation_agent = LlmAgent(
@@ -77,7 +104,7 @@ transportation_agent = LlmAgent(
     model=openai_model,
     description=transportation_agent_config["description"],
     instruction=transportation_agent_config["instruction"],
-    tools=[google_search],
+    tools=[web_search],
 )
 
 # -----------------------------------------
@@ -137,9 +164,9 @@ Final Output: 🍽️ Recommendation + 🚗 Route Info
 
 async def run_sequential_app():
     queries = [
-        "I want to eat the best sushi in Palo Alto.",  # Should go to foodie_agent
-        "Are there any cool outdoor concerts this weekend?",  # Should go to weekend_guide_agent
-        "Find me the best sushi in Palo Alto and then tell me how to get there from the Caltrain station.",  # Should trigger the COMBO
+        # "I want to eat the best Italian in Palo Alto.",  # Should go to foodie_agent
+        # "Are there any cool outdoor concerts this weekend?",  # Should go to weekend_guide_agent
+        "Find me the best Indian restaurant in Palo Alto and then tell me how to get there from the Caltrain station.",  # Should trigger the COMBO
     ]
 
     session_service = InMemorySessionService()
@@ -175,47 +202,67 @@ async def run_sequential_app():
             )
 
             # STEP 2a: Run the foodie_agent first
-            foodie_session = await session_service.create_session(
-                app_name=foodie_agent.name, user_id=my_user_id
+            foodie_flow_session = await session_service.create_session(
+                app_name=foodie_flow_agent.name, user_id=my_user_id
             )
             foodie_response = await run_agent_query(
-                foodie_agent,
+                foodie_flow_agent,
                 query,
                 session_service,
-                session=foodie_session,
+                session=foodie_flow_session,
                 user_id=my_user_id,
             )
 
-            # STEP 2b: Extract the destination from the first agent's response
-            # (This is a simple regex, a more robust solution might use a structured output format)
-            match = re.search(r"\*\*(.*?)\*\*", foodie_response)
-            if not match:
+            pydantic_result = foodie_flow_session.state.get("structured_foodie_data")
+            if pydantic_result:
+                # get the recommendations from session state
+                # state = await foodie_session.get_state()
+                # foodie_data = state.get("foodie_data")
+                # destination = (
+                #     foodie_response.restaurant_name
+                #     if isinstance(foodie_response, FoodieResponse)
+                #     else "Unknown"
+                # )
+                destination = pydantic_result.restaurant_name
                 console.print(
-                    "[red]🚨 Could not determine the restaurant name from the response.[/red]"
+                    f"[green] ✅ {foodie_flow_agent.name} \n Response:\n {pydantic_result} \n Destination: {destination} [/green]"
                 )
-                continue
-            destination = match.group(1)
-            console.print(f"[blue]💡 Extracted Destination: {destination}[/blue]")
 
-            # STEP 2c: Create a new query and run the transportation_agent
-            directions_query = f"Give me directions to {destination} from the Palo Alto Caltrain station."
-            console.print(
-                f"[green]\n🗣️ New Query for Transport Agent: '{directions_query}'[/green]"
-            )
-            transport_session = await session_service.create_session(
-                app_name=transportation_agent.name, user_id=my_user_id
-            )
-            response = await run_agent_query(
-                transportation_agent,
-                directions_query,
-                session_service,
-                session=transport_session,
-                user_id=my_user_id,
-            )
-            console.print(f"[green] ✅ Agent Response:\n {response}[/green]")
+                # STEP 2b: Extract the destination from the first agent's response
+                # (This is a simple regex, a more robust solution might use a structured output format)
+                # match = re.search(r"\*\*(.*?)\*\*", foodie_response)
+                # if not match:
+                #     console.print(
+                #         "[red]🚨 Could not determine the restaurant name from the response.[/red]"
+                #     )
+                #     continue
+                # destination = match.group(1)
+                # console.print(f"[blue]💡 Extracted Destination: {destination}[/blue]")
 
-            console.print("[green]--- Combo Workflow Complete ---[/green]")
+                # STEP 2c: Create a new query and run the transportation_agent
+                directions_query = f"Give me directions to {destination} from the Palo Alto Caltrain station."
+                console.print(
+                    f"[green]\n🗣️ New Query for Transport Agent: '{directions_query}'[/green]"
+                )
+                transport_session = await session_service.create_session(
+                    app_name=transportation_agent.name, user_id=my_user_id
+                )
+                response = await run_agent_query(
+                    transportation_agent,
+                    directions_query,
+                    session_service,
+                    session=transport_session,
+                    user_id=my_user_id,
+                )
+                console.print(
+                    f"[green] ✅ {transportation_agent.name} Response:\n {Markdown(response)}[/green]"
+                )
 
+                console.print("[green]--- Combo Workflow Complete ---[/green]")
+            else:
+                console.print(
+                    "[red]🚨 Could not retrieve structured data from the foodie agent. Aborting combo workflow.[/red]"
+                )
         elif chosen_route in worker_agents:
             # This is a simple, single-agent route
             worker_agent = worker_agents[chosen_route]
