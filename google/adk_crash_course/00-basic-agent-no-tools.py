@@ -58,6 +58,7 @@ async def main():
 
     query = ""
     while True:
+        # a simple console based chat with Agent
         query = Prompt.ask(
             "[bright_yellow]Your question (or type 'exit' or press Enter to quit): [/bright_yellow]",
             default="exit",
