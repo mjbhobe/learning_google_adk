@@ -1,15 +1,12 @@
-import os
 import asyncio
-from typing import List
 from dotenv import load_dotenv
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.prompt import Prompt
 
-from google.adk.agents import Agent
+from google.adk.agents import LlmAgent
+from google.adk.models.lite_llm import LiteLlm
 from google.adk.sessions import InMemorySessionService
-from google.adk.tools import ToolContext
-from google.adk.tools.agent_tool import AgentTool
 
 from tools import get_weather, say_hello, say_goodbye
 from utils import load_agent_config, run_agent_query
@@ -30,14 +27,11 @@ logger.info(
 greeting_agent_config = load_agent_config("greeting_agent")
 farewell_agent_config = load_agent_config("farewell_agent")
 
-from google.adk.agents import LlmAgent
-from google.adk.models.lite_llm import LiteLlm
 
 # NOTE: ensure you have an entry for OPENAI_API_KEY in your .env file!
 # also add google-adk[extensions] to your local Python environment
 openai_model = LiteLlm(model="openai/gpt-4o")
 
-# weather_agent = LlmAgent(
 weather_agent = LlmAgent(
     name="weather_agent",
     model=openai_model,
@@ -82,13 +76,33 @@ weather_agent_team = LlmAgent(
 
 async def main():
     session_service = InMemorySessionService()
+    session_id = "multi_agent_with_adk_demo_session_007"
     my_user_id = "adk_adventurer_001"
+    # add some initial settings
+    session_state = {
+        "user_pref_temperature_units": "Celcius",
+    }
 
     # if you want the agent to remember conversation context across calls
     # then create a session (outside of all calls to run_agent_query) and pass
     # that session object in each call to run_agent_query
     my_session = await session_service.create_session(
-        app_name=weather_agent_team.name, user_id=my_user_id
+        app_name=weather_agent_team.name,
+        user_id=my_user_id,
+        session_id=session_id,
+        state=session_state,
+    )
+    logger.info(f"Session created with ID: {session_id}")
+
+    # test if I can retrieve the info
+    retrieved_session = await session_service.get_session(
+        app_name=weather_agent_team.name,
+        user_id=my_user_id,
+        session_id=session_id,
+    )
+    logger.info(
+        f"Retrived session: {retrieved_session}\n"
+        f"Retrieved state: {retrieved_session.state}"
     )
 
     query = ""
@@ -97,7 +111,7 @@ async def main():
             "[bright_yellow]Query (or type 'exit' or press Enter to quit): [/bright_yellow]",
             default="exit",
         )
-        # query = input()
+
         if query.strip().lower() == "exit":
             console.print("[bright_yellow]Goodbye![/bright_yellow]")
             logger.info("User exited the application.")

@@ -1,19 +1,16 @@
-import datetime
 import httpx
-import asyncio
 import json
 from typing import Optional
-
 from rich.console import Console
 
-from datetime import datetime
-from zoneinfo import ZoneInfo
+from google.adk.tools.tool_context import ToolContext
+
 from logger import get_logger
 
 logger = get_logger("agent_team.tools")
 
 
-async def get_weather(city: str) -> dict:
+async def get_weather(city: str, tool_context: ToolContext) -> dict:
     """
     Retrieves the current weather report for a specified city.
     Args:
