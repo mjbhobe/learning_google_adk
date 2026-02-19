@@ -102,6 +102,7 @@ async def run_agent_query(
     session: Session = None,
     user_id: str = "adk_developer_007",
     is_router: bool = False,
+    show_trace: bool = False,
 ) -> str:
     # Create a new, single-use session for this query ONLY if caller
     # doesn't pass a valid session object.
@@ -125,7 +126,7 @@ async def run_agent_query(
             session_id=my_session.id,
             new_message=Content(parts=[Part(text=query)], role="user"),
         ):
-            if not is_router:
+            if (not is_router) and (show_trace):
                 # Let's see what the agent is thinking!
                 console.print(f"[yellow]EVENT: {event}[/yellow]")
             if event.is_final_response():

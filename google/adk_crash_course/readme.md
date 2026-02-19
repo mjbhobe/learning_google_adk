@@ -1,4 +1,4 @@
-## Learing Google ADK from the creators themselves!
+## ADK Crash Course
 
 This is a tutorial from Google & can be found (here)[https://codelabs.developers.google.com/onramp/instructions#0]. I have developed it as separate Python modules (*.py files rather than notebooks).
 

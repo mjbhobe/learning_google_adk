@@ -1,7 +1,11 @@
 """
 05-router-agent.py
 
-So far we have handles simple tasks that rely on 1 agent. Most tasks are too complex for 1 agent to handle - for example if the user asks "Find me a great Italian restaurant in Mumbai and tell me how to get there" - this task requires 2 different skills a. Restaurant recommendation and b. Nagivation.
+So far we have handled simple tasks that rely on 1 agent. Most tasks are too complex
+for 1 agent to handle - for example if the user asks "Find me a great Italian restaurant
+in Mumbai and tell me how to get there" - this task requires 2 different skills:
+  a. Restaurant recommendation and
+  b. Nagivation.
 
 In this example we'll use a top Router agent, which will "direct" flow to << TODO >>
 
@@ -18,7 +22,8 @@ from rich.markdown import Markdown
 from rich.prompt import Prompt
 from pydantic import BaseModel, Field
 
-from google.adk.agents import Agent, SequentialAgent
+from google.adk.agents import LlmAgent, SequentialAgent
+from google.adk.models.lite_llm import LiteLlm
 from google.adk.sessions import InMemorySessionService, Session
 from google.adk.tools import google_search
 from google.adk.tools import ToolContext
@@ -37,9 +42,6 @@ weekend_guide_agent_config = load_agent_config("weekend_guide_agent")
 transportation_agent_config = load_agent_config("transportation_agent")
 router_agent_config = load_agent_config("router_agent")
 
-
-from google.adk.agents import LlmAgent
-from google.adk.models.lite_llm import LiteLlm
 
 # NOTE: ensure you have an entry for OPENAI_API_KEY in your .env file!
 # also add google-adk[extensions] to your local Python environment

@@ -43,7 +43,7 @@ async def run_agent_query(
     session: Session = None,
     user_id: str = "adk_developer_007",
     is_router: bool = False,
-    show_trace: bool = True,
+    show_trace: bool = False,
 ) -> str:
     # Create a new, single-use session for this query ONLY if caller
     # doesn't pass a valid session object.

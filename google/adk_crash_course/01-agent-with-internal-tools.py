@@ -1,13 +1,14 @@
 """
 01-agent-with-internal-tools.py
 
-This is an example of a simple stand-alone agent that can generate full-day trip itineraries based
-on mood, interests, and budget. It utilizes INTERNAL Google Search tool to gather information about local attractions, restaurants, and activities to create a personalized itinerary.
+In this example, we extend the basic agent from previous example (00-basic-agent-no-tools.py)
+by adding an INTERNAL Google Search tool. This allows the agent to fetch up-to-date
+information from the web to answer user queries that require current data.
 
-Components:
-* Agent: The brain of the operation, defined by its instructions, tools, and the AI model it uses.
-* Session: The conversation history. For this simple agent, it's just a container for a single request-response.
-* Runner: The engine that connects the Agent and the Session to process your request and get a response.
+This is an example of a simple stand-alone agent that can generate full-day trip
+itineraries based on mood, interests, and budget. It utilizes INTERNAL Google Search
+tool to gather information about local attractions, restaurants, and activities to
+create a personalized itinerary.
 
 NOTE: code shared for learning purposes only! Use at your own risk.
 """
@@ -30,6 +31,8 @@ from utils import load_agent_config, run_agent_query
 # load API keys
 load_dotenv(override=True)
 
+# load agent config from YAML file -- helps us externalize Agent params
+# such as model, description, and instructions.
 agent_config = load_agent_config("day_trip_agent")
 
 # Step 1 -> Create an agent
@@ -42,37 +45,12 @@ day_trip_agent = Agent(
 )
 
 
-# Step 2: Create a function to run the agent
-async def run_day_trip_genie(
-    agent: Agent,
-    session_service: InMemorySessionService,
-    user_id: str,
-    query: str,
-):
-    # Create a new, single-use session for this query
-    my_session = await session_service.create_session(
-        app_name=agent.name, user_id=user_id
-    )
-    print(f"🗣️ User Query: '{query}'")
-
-    await run_agent_query2(
-        agent,
-        query,
-        session_service,
-        my_session.id,
-        user_id,
-    )
-
-
-# --- Initialize our Session Service ---
-# This one service will manage all the different sessions in our notebook.
-# query = "Plan a relaxing and local food tasting trip near Mumbai, India. Keep it affordable!"
-
-
 async def main():
-    # Setup Argument Parser - add optional -q / --query argument to allow users to
-    # input their own trip query. So for example, you could enter the following on the command line
-    # uv run | python 01-day-trip-genie.py -q "Plan a fun day trip in Tokyo for a family with young kids. Include outdoor activities and keep it budget-friendly."
+    # Setup Argument Parser - add optional -q / --query argument to allow
+    # users to input their own trip query. So for example, you could enter
+    # the following on # the command line
+    # uv run | python 01-day-trip-genie.py -q "Plan a fun day trip in Tokyo for a
+    # family with young kids. Include outdoor activities and keep it budget-friendly."
 
     parser = argparse.ArgumentParser(description="Run the Day Trip Genie Agent")
     parser.add_argument(
@@ -81,7 +59,8 @@ async def main():
         type=str,
         help="The query for the agent (e.g., 'Plan a trip to Delhi')",
         # this is the default query, if user doesn't provide one using the -q | --query flag
-        default="Plan a relaxing and local food tasting trip near Mumbai, India. Keep it affordable!",
+        default="""Plan a relaxing and local food tasting trip near Mumbai, India. 
+            Keep it affordable!""",
     )
 
     console = Console()
@@ -96,10 +75,10 @@ async def main():
         session_service,
         user_id=my_user_id,
     )
-    console.print("[green]\n" + "-" * 50 + "\n[/green]")
+    console.print("[green]\n" + "-" * 50 + "[/green]")
     console.print("[green]✅ Final Response:[/green]")
     console.print(Markdown(final_response))
-    console.print("[green]\n" + "-" * 50 + "\n[/green]")
+    console.print("[green]\n" + "-" * 50 + "[/green]")
 
 
 if __name__ == "__main__":

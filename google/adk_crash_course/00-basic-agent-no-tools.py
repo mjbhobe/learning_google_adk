@@ -1,8 +1,10 @@
 """
 00-basic-agent-no-tools.py
 
-This is an example of a basic agent, which relies on it's pretrained knowledge to respond to user's
-queries. It will first ask for the user's name, greet them and then ansewer their questions.
+This is an example of a basic agent, which relies on it's pretrained knowledge to
+respond to user's queries. It will NOT be able to fetch the latest info from the web
+as it does not have any tools support yet! Also no session memory, so each query is
+distinct and LLM has no link to previous questions or responses.
 
 NOTE: code shared for learning purposes only! Use at your own risk.
 """
@@ -15,7 +17,8 @@ from rich.console import Console
 from rich.markdown import Markdown
 from rich.prompt import Prompt
 
-from google.adk.agents import Agent
+from google.adk.agents import LlmAgent
+from google.adk.models.lite_llm import LiteLlm
 from google.adk.sessions import InMemorySessionService
 
 from utils import load_agent_config, run_agent_query
@@ -32,10 +35,6 @@ greeting_agent = Agent(
     instruction=agent_config["instruction"],
 )
 
-# but you can also have an agent that uses an OpenAI or Claude
-# or a non-Google model, like so
-from google.adk.agents import LlmAgent
-from google.adk.models.lite_llm import LiteLlm
 
 # NOTE: ensure you have an entry for OPENAI_API_KEY in your .env file!
 # also add google-adk[extensions] to your local Python environment
@@ -43,6 +42,9 @@ openai_model = LiteLlm(model="openai/gpt-4o")
 
 openai_greeting_agent = LlmAgent(
     name="openai_greeting_agent",
+    # if you plan to use a Google LLM (for example gemini-2.5-flash), then
+    # use it as below (no need to instantiate a LiteLlm instance)
+    # model = "gemini-2.5-flash",  # <<<< for Google LLMs
     model=openai_model,
     description=agent_config["description"],
     instruction=agent_config["instruction"],
@@ -74,10 +76,10 @@ async def main():
             session_service=session_service,
             user_id=my_user_id,
         )
-        console.print("[green]\n" + "-" * 50 + "\n[/green]")
-        console.print("[green]✅ Response:[/green]")
+        console.print("[green]\n" + "-" * 50 + "[/green]")
+        console.print("[green]✅ Agent Response:[/green]")
         console.print(Markdown(final_response))
-        console.print("[green]\n" + "-" * 50 + "\n[/green]")
+        console.print("[green]\n" + "-" * 50 + "[/green]")
 
 
 if __name__ == "__main__":

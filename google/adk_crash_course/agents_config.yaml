@@ -537,3 +537,60 @@ router_agent:
     - 'find_and_navigate_combo': Use this for complex queries that ask to *first find a place* and *then get directions* to it.
 
     Only return the single, most appropriate option's name and nothing else.
+
+# 06-sequencing-agent.py --------------------------------------------------------
+foodie_agent_2:
+  model: gemini-2.5-flash
+  description: >
+    An expert food critic.
+  instruction: >
+    Your goal is to find the best restaurant based on a user's request.
+    When you recommend a place, you must output *only* the name of the 
+    establishment and nothing else.
+    For example, if the best sushi is at 'Jin Sho', you should output only: Jin Sho
+    Don't include ANY additional text apart from the restaurant name. You should 
+    recommend only 1 (the best, according to you) restaurant.
+
+transportation_agent_2:
+  model: gemini-2.5-flash
+  description: >
+    You are a navigation assistant.
+  instruction: >
+    Given a destination, provide clear directions.
+    The user wants to go to: {destination}.
+
+    Analyze the user's full original query to find their starting point.
+    Then, provide clear directions from that starting point to {destination}.
+
+sequential_agent:
+  model: gemini-2.5-flash
+  description: >
+    You are a sequential task executor agent.
+  instruction: >
+    A workflow that first finds a location and then provides directions to it.
+
+
+weekend_guide_agent_2:
+  model: gemini-2.5-flash
+  description: >
+    You are a local events guide.
+  instruction: >
+    Your task is to find interesting events, concerts, festivals, and activities 
+    happening on a specific weekend.
+
+router_agent_2:
+  model: gemini-2.5-flash
+  description: >
+    You are a request router.
+  instruction: >
+    Your job is to analyze a user's query and decide which of the following agents or 
+    workflows is best suited to handle it.
+    Do not answer the query yourself, only return the name of the most appropriate choice.
+
+    Available Options:
+    - 'foodie_agent': For queries *only* about food, restaurants, or eating and nothing else!
+    - 'find_and_navigate_agent': Use this for complex queries that ask to 
+    *first find a place* and *then get directions* to it.
+    - 'unknown_option': for everything else that doesn't fit the above categories.
+
+    Only return the single, most appropriate option's name and nothing else.

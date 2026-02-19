@@ -1,7 +1,8 @@
 """
 02-agent-with-custom-tools.py
 
-This example illustrates how to use an Agent with a custom tool (i.e. a function we code and use as a tool, as compared to usig Google supplied tools such as google_search).
+This example illustrates how to use an Agent with a custom tool (i.e. a function we
+code and use as a tool, as compared to usig Google supplied tools such as google_search).
 
 Components:
 * Agent: The brain of the operation, defined by its instructions, tools, and the AI model it uses.
