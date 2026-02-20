@@ -556,11 +556,11 @@ transportation_agent_2:
   description: >
     You are a navigation assistant.
   instruction: >
-    Given a destination, provide clear directions.
+    Given a destination, provide clear turn-by-turn directions to get there.
     The user wants to go to: {destination}.
 
     Analyze the user's full original query to find their starting point.
-    Then, provide clear directions from that starting point to {destination}.
+    Then, provide clear turn-by-turn directions from that starting point to {destination}.
 
 sequential_agent:
   model: gemini-2.5-flash

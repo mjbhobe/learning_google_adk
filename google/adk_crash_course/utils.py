@@ -117,7 +117,12 @@ async def run_agent_query(
         f"[green]\n🚀 Running query for agent: '{agent.name}' in session: '{my_session.id}'...[/green]"
     )
 
-    runner = Runner(agent=agent, session_service=session_service, app_name=agent.name)
+    runner = Runner(
+        agent=agent,
+        session_service=session_service,
+        # app_name=agent.name,
+        app_name=my_session.app_name,
+    )
 
     final_response = ""
     try:

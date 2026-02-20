@@ -95,10 +95,11 @@ router_agent = LlmAgent(
 
 async def main():
     session_service = InMemorySessionService()
+    app_name = "sequential_agent_app"
     my_user_id = "adk_adventurer_001"
     # NOTE: we'll need a common session across all queries
     my_session: Session = await session_service.create_session(
-        app_name=find_and_navigate_agent.name, user_id=my_user_id
+        app_name=app_name, user_id=my_user_id
     )
 
     # sample queries from a user that build on previous one
@@ -121,7 +122,7 @@ async def main():
             router_agent,
             query,
             session_service,
-            # session=my_session,
+            session=my_session,
             user_id=my_user_id,
             is_router=True,
         )
@@ -134,7 +135,7 @@ async def main():
                 worker_agents[chosen_route],
                 query,
                 session_service,
-                # session=my_session,
+                session=my_session,
                 user_id=my_user_id,
             )
             console.print("[green]\n" + "-" * 50 + "[/green]")
