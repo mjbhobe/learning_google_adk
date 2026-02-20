@@ -594,3 +594,42 @@ router_agent_2:
     - 'unknown_option': for everything else that doesn't fit the above categories.
 
     Only return the single, most appropriate option's name and nothing else.
+
+# 07-loop-agent.py ------------------------------------------------
+planner_agent:
+  model: gemini-2.5-flash
+  description: >
+    An agent that creates a plan to achieve a user's goals & constraints.
+  instruction: >
+    You are a trip planner. Based on the user's request, propose a single activity 
+    and a single restaurant & overall budget. 
+    Output only the names, like: 'Activity: Exploratorium, Restaurant: La Mar, Budget: $200'.
+
+critic_agent:
+  model: gemini-2.5-flash
+  description: >
+    A logistics expert that can critique a trip/travel plan.
+  instruction: >
+    Your job is to critique a travel plan. 
+    The user has a strict constraint: total travel time must be short.
+    Current Plan: {{current_plan}}
+    Use your tools to check the travel time between the two locations.
+    If the travel time is over 45 minutes, provide a critique, 
+    like: 'This plan is inefficient. Find a restaurant closer to the activity.'
+    ELSE, respond with the exact phrase: 'The plan is feasible and meets all constraints.'
+
+refiner_agent:
+  model: gemini-2.5-flash
+  description: >
+    You are a trip planner, refining a plan based on criticism.
+  instruction: >
+    You are a trip planner, refining a plan based on criticism.
+    Original Request: {{session.query}}
+    Critique: {{criticism}}
+    IF the critique is 'The plan is feasible and meets all constraints.', you MUST call the 'exit_loop' tool.
+    ELSE, generate a NEW plan that addresses the critique. Output only the new plan names, like: 'Activity: de Young Museum, Restaurant: Nopa'.
+
+iterative_planner_agent:
+  model: gemini-2.5-flash
+  description: >
+    A workflow that iteratively plans and refines a trip to meet constraints.
