@@ -1,26 +1,28 @@
 ## ADK Crash Course
 
-This is a tutorial from Google & can be found (here)[https://codelabs.developers.google.com/onramp/instructions#0]. I have developed it as separate Python modules (*.py files rather than notebooks).
+This is a tutorial from Google & can be found [here](https://codelabs.developers.google.com/onramp/instructions#0). I have developed it as separate Python modules (*.py files rather than Jupyter notebooks).
 
 ### Setup
 
 ```bash
-# create a folder to host your code (e.g. ~/adk_projects)
-cd ~/adk_projects  # replace adk_projects with your folder name
+# create a folder to host your code (e.g. ~/adk_crash_course)
+cd ~/adk_crash_course  # replace adk_crash_course with your folder name
 ```
-Create a `requirements.txt` file inside `~/adk_projects` with the following contents:
+Create a `requirements.txt` file inside `~/adk_crash_course` with the following contents:
 
 ```
 google-adk
 google-generativeai
+httpx
 psutil
+pydantic
 python-dotenv
 python-weather
 pyyaml
 rich
 yfinance
 ```
-Proceed with the next steps as below (to be run inside the `~/adk_projects` folder)
+Proceed with the next steps as below (to be run inside the `~/adk_crash_course` folder)
 ```bash
 # Create a virtual environment
 uv venv . --python 3.12
@@ -34,6 +36,13 @@ uv venv . --python 3.12
 # Install dependencies
 uv add -r requirements.txt
 ```
+
+However, if you have downloaded this code repo from Github, then you don't have to do all steps above. Just run the following:
+```bash
+cd ~/adk_crash_course
+uv sync   
+```
+This will automatically create the environment for you and install all packages!
 
 ### Run the code 
 
