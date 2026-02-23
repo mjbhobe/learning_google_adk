@@ -59,28 +59,48 @@ async def main():
     app_name = "agent_with_structured_output_app"
     my_user_id = "adk_adventurer_001"
 
-    query = ""
-    while True:
-        # a simple console based chat with Agent
-        query = Prompt.ask(
-            "[bright_yellow]Your question (or type 'exit' or press Enter to quit): [/bright_yellow]",
-            default="exit",
-        )
-        # query = input()
-        if query.strip().lower() == "exit":
-            console.print("[bright_yellow]Goodbye![/bright_yellow]")
-            break
+    # sample prompts to test the problem analysis agent
+    prompts = {
+        "PSYCHOLOGIST": "I've been having intrusive negative thoughts, frequent panic-like episodes, and trouble concentrating at work for months—I'm worried this is affecting my relationships; can you help me understand what's going on and what steps I should take?",
+        "PSYCHOLOGIST": "Lately I feel numb and unmotivated, I cry unexpectedly, and my sleep is all over the place—I'm not sure if this is depression or burnout; what signs should I look for and how should I start addressing it?",
+        "PSYCHIATRIST": "My anxiety is severe, and I've tried therapy with limited improvement; I also notice physical symptoms and racing thoughts—could medication help and what are the options I should discuss with a prescriber?",
+        "PSYCHIATRIST": "I've had mood swings with periods of very high energy followed by deep lows that last days—I'm worried about bipolar disorder and want to know what diagnostic steps and medication strategies are appropriate.",
+        "THERAPIST": "My partner and I keep having the same arguments about communication; we both feel unheard and keep revisiting old hurts—can you suggest therapeutic approaches or exercises we can try to improve our relationship?",
+        "THERAPIST": "I grew up in a household where emotions were dismissed and now I struggle with setting boundaries at work and with family—what therapeutic techniques can help me build assertiveness and emotional regulation?",
+        "NUTRITIONIST": "I've been feeling sluggish, my digestion is inconsistent, and I recently gained weight despite not changing much—can you suggest a nutrition plan, potential food sensitivities to test for, and simple lab markers to check?",
+        "NUTRITIONIST": "I'm a vegetarian training for a half-marathon and worried I'm not getting enough iron and protein—what meal and supplement plan would optimize my performance and recovery?",
+        "PERSONAL_TRAINER": "I have a busy schedule but want to lose 10 lbs and build strength—what realistic 8-week workout plan and weekly time commitment would you recommend given I can train 3x/week?",
+        "PERSONAL_TRAINER": "I've been stuck at the same deadlift weight for months and get lower-back fatigue—can you analyze my possible technique or programming issues and suggest corrections and progressions?",
+        "LIFE_COACH": "I hit a career plateau and feel unsure of my next goals; I want more purpose but get overwhelmed when I try to plan—can you help me clarify priorities and create an actionable 90-day plan?",
+        "LIFE_COACH": "I keep procrastinating on starting my side business despite wanting freedom—what mindset shifts and daily habits can I implement to move from idea to first customer within 60 days?",
+        "FINANCIAL_ADVISOR": "I have $30k in savings, $12k in student loans (5% interest), and a 401(k) matching 4%—should I prioritize paying down debt, investing more, or building an emergency fund, given my goal to buy a house in 2 years?",
+        "FINANCIAL_ADVISOR": "I'm self-employed with irregular income—how should I structure a budget, tax-advantaged retirement contributions, and a cash buffer to smooth seasons and plan for retirement?",
+        "BUSINESS_COACH": "I'm launching a subscription-based product but my churn rate is high after month one—can you help identify potential product-market fit issues and suggest experiments to improve retention?",
+        "BUSINESS_COACH": "Our small team struggles with scaling processes as we grow from 5 to 20 people; what organizational changes and leadership practices should we prioritize to avoid chaos?",
+        "CAREER_COACH": "I've been passed over for promotion twice despite strong performance—how should I analyze the gap, communicate with managers, and position myself for the next opportunity?",
+        "CAREER_COACH": "I'm transitioning from academia to industry and need to reframe my CV and interview stories—can you help translate my research experience into clear, hireable skills and achievements?",
+        "GENERAL_HELPER": "I'm juggling house renovations, work deadlines, and family care and feel overwhelmed—can you help me create a prioritized checklist and short daily routine to get back on track?",
+        "GENERAL_HELPER": "I need help drafting a clear, polite email to request a deadline extension from a client while protecting the relationship—can you write a few concise options and explain when to use each?",
+    }
 
-        console.print(f"[green]🗣️ User Query:[/green] '{query}'")
+    # lets iterate through the prompts
+    for consultant, issue in prompts.items():
+
+        console.print("[green]\n" + "-" * 50 + "[/green]")
+        console.print(f"\n[bright_blue]Consultant Type:[/bright_blue] {consultant}")
+        console.print(f"[bright_white]Issue:[/bright_white] {issue}")
+        console.print("[yellow]\n" + "-" * 50 + "[/yellow]")
 
         final_response = await run_agent_query(
             # greeting_agent,
             problem_analysis_agent,
-            query,
+            issue,
             session_service=session_service,
             user_id=my_user_id,
         )
-        console.print("[green]\n" + "-" * 50 + "[/green]")
+
+        console.print("[yellow]\n" + "-" * 50 + "[/yellow]")
+
         console.print("[green]✅ Agent Response:[/green]")
         console.print(Markdown(final_response))
         console.print("[green]\n" + "-" * 50 + "[/green]")
