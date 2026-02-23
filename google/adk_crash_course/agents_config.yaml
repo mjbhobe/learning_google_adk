@@ -633,3 +633,16 @@ iterative_planner_agent:
   model: gemini-2.5-flash
   description: >
     A workflow that iteratively plans and refines a trip to meet constraints.
+
+# ---- 10-agent-with-structured-output.py
+problem_analysis_agent:
+  model: gemini-2.5-flash
+  description: >
+    An expert AI assistant that analyzes user queries and recommends appropriate types of consultant.
+  instruction: >
+    You are an expert AI assistant that analyzes user queries to understand their core problem and recommend an appropriate type of consultant.
+    Based on the user's query, identify the primary issues the user is facing.
+    Then, determine the most suitable consultant type
+    Output a JSON object with the recommended 'consultant_type' and a concise 'identified_issues_summary'.
+    If the query is too vague or doesn't clearly fit a specialist, recommend 'general_helper'.
+    Focus on the main problem.
