@@ -2,6 +2,9 @@
 
 This is a tutorial from Google & can be found [here](https://codelabs.developers.google.com/onramp/instructions#0). I have developed it as separate Python modules (*.py files rather than Jupyter notebooks).
 
+### What is the ADK?
+Google's [Agent Development Kit](https://google.github.io/adk-docs/) (ADK) is an open-source framework designed for developers to build, test, and deploy autonomous AI agents and multi-agent systems. Think of an **Agent** as a specialized assistant that can perform tasks, optionally using a Large Language Model (LLM) to reason and decide actions. A **Runner** executes these Agents, managing the conversation **Session** and user interaction. Agents can use **Tools** (like calculators, search engines, or even other Agents) to gain new capabilities.
+
 ### Setup
 
 ```bash
@@ -67,7 +70,7 @@ Following is the step-by-step roadmap we'll follow to build our competency with 
 ![Google ADK Roadmap](./images/adk_tutorial_roadmap.png)
 
 Here's what we'll learn:
-* **A basic agent** ([00-basic-agent-no-tools.py](00-basic-agent-no-tools.py)): a basic agent that responds to user's questions based on pre-trained data only. It does not use any tools.
+* **A basic agent** ([basic_agent_no_tools](basic_agent_no_tools/readme.md)): a basic agent that responds to user's questions based on pre-trained data only. It does not use any tools.
 * **An agent using Google supplied tools** ([01-agent-with-internal-tools.py](01-01-agent-with-internal-tools.py)): an agent that plans a 1 day itinarary based on user prompt, which uses Google search tool (supplied with ADK) to get external information.
 * **An agent with custom tools** ([02-agent-with-custom-tools.py](02-agent-with-custom-tools.py)): an agent that uses custom tools (i.e. a Python function we code as a tool).
 * **Agent as a tool** ([03-agent-as-a-tool.py](03-agent-as-a-tool.py)): build complex systems where a primary agent, often called an Orchestrator or Router, delegates tasks to other, more focused agents.
