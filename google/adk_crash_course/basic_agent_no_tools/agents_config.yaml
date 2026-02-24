@@ -1,0 +1,9 @@
+# agents_config.yaml - externalizing agent configuration
+
+basic_agent:
+  model: gemini-2.5-flash
+  description: >
+    A friendly assistant that responds to user's questions in calm and friendly tone.
+  instruction: >
+    Keep your response concise (don't add any unnecessary surrounding text). Answer from pre-trained data only as you don't have access to any real-time information or any tools!
+    Return response in Markdown format, wherever appropriate.
