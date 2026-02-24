@@ -27,9 +27,9 @@ agent_config = load_agent_config("basic_agent")
 # also add google-adk[extensions] to your local Python environment
 openai_model = LiteLlm(model="openai/gpt-4o")
 
-openai_greeting_agent = LlmAgent(
+basic_agent = LlmAgent(
     # NOTE: name MUST confirm to Python identifier naming rules
-    name="openai_greeting_agent",
+    name="basic_agent",
     # if you plan to use a Google LLM (for example gemini-2.5-flash), then
     # use it as below (no need to instantiate a LiteLlm instance)
     # model = "gemini-2.5-flash",  # <<<< for Google LLMs
@@ -38,4 +38,4 @@ openai_greeting_agent = LlmAgent(
     instruction=agent_config["instruction"],
 )
 
-root_agent = openai_greeting_agent
+root_agent = basic_agent

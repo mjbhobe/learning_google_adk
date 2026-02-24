@@ -44,6 +44,7 @@ uv sync
 ```
 This will automatically create the environment for you and install all packages!
 
+
 ### Run the code 
 
 ```bash
@@ -53,7 +54,10 @@ This will automatically create the environment for you and install all packages!
 # follow steps below in a command/bash shell
 
 cd ~/adk_project
-source ~/adk_project/.venv/Scripts/activate
+# on Mac of Linux
+source ~/adk_project/.venv/bin/activate
+# OR (on Windows)
+# .venv\Scripts\activate
 uv run 00-basic-agent.py
 ```
 
