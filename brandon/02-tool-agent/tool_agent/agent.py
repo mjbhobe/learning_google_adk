@@ -1,10 +1,14 @@
+from dotenv import load_dotenv
+
 from google.adk.agents import Agent
 from google.adk.tools import google_search
 from google.adk.runners import InMemoryRunner
 from google.genai import types
+
 from tools import get_weather
 from logger_config import setup_logger
 
+load_dotenv(override=True)
 # Initialize agent-level logger
 logger = setup_logger("agent")
 
@@ -14,16 +18,19 @@ root_agent = Agent(
     model="gemini-2.5-flash",
     description="Agent that can use tools",
     instruction="""
-    You are a helpful travel guide. "
-    Use 'google_search' to find places to visit or general info. "
+    You are a helpful travel guide who can provide weather information.
+    Use 'get_weather' to fetch weather information. For any other queries, use
+    'google_search' tool to find relevant information. 
+    Always provide a helpful response to the user.
     """,
-    tools=[google_search],
+    tools=[get_weather, google_search],
 )
 
 if __name__ == "__main__":
     runner = InMemoryRunner(agent=root_agent)
 
-    query = "Tell me places to visit in London."
+    # query = "Tell me places to visit in London."
+    query = "What's the weather like in London today?"
     logger.info(f"Processing user query: [yellow]{query}[/yellow]")
 
     # 3. Format the input for the ADK Runner
@@ -42,8 +49,9 @@ if __name__ == "__main__":
 
     # 5. Extract and print the final response
     for event in events:
-        if event.content and event.content.parts:
-            # The final response is usually the last text part
-            print(
-                f"\n[bold green]Agent Response:[/bold green]\n{event.content.parts[0].text}"
-            )
+        if event.is_final_response():
+            if event.content and event.content.parts:
+                # The final response is usually the last text part
+                print(
+                    f"\n[bold green]Agent Response:[/bold green]\n{event.content.parts[0].text}"
+                )
