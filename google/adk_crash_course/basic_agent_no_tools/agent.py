@@ -22,25 +22,18 @@ load_dotenv(override=True)
 
 agent_config = load_agent_config("basic_agent")
 
-# this is an agent that uses a Google Gemini model
-greeting_agent = Agent(
-    name="greeting_agent",
-    model=agent_config["model"],  # gemini-2.5-flash
-    description=agent_config["description"],
-    instruction=agent_config["instruction"],
-)
-
 
 # NOTE: ensure you have an entry for OPENAI_API_KEY in your .env file!
 # also add google-adk[extensions] to your local Python environment
 openai_model = LiteLlm(model="openai/gpt-4o")
 
 openai_greeting_agent = LlmAgent(
+    # NOTE: name MUST confirm to Python identifier naming rules
     name="openai_greeting_agent",
     # if you plan to use a Google LLM (for example gemini-2.5-flash), then
     # use it as below (no need to instantiate a LiteLlm instance)
     # model = "gemini-2.5-flash",  # <<<< for Google LLMs
-    model=openai_model,
+    model=openai_model,  # <<< use a non-Google LLM
     description=agent_config["description"],
     instruction=agent_config["instruction"],
 )
