@@ -1,3 +1,8 @@
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 import asyncio
 from dotenv import load_dotenv
 
@@ -9,8 +14,8 @@ from google.adk.sessions import InMemorySessionService, Session
 from google.adk.runners import Runner
 from google.genai import types
 
-from agent import root_agent
-from logger import get_logger
+from tool_agent.agent import root_agent
+from tool_agent.logger import get_logger
 
 
 load_dotenv(override=True)

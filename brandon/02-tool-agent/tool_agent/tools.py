@@ -6,7 +6,7 @@ import asyncio
 import requests
 import httpx
 
-from .logger import get_logger
+from tool_agent.logger import get_logger
 
 load_dotenv(override=True)
 logger = get_logger("tool_agent.tools")
