@@ -2,6 +2,8 @@ from dotenv import load_dotenv
 
 from google.adk.agents import Agent
 from google.adk.models.lite_llm import LiteLlm
+from google.adk.models import Gemini  # Use the Gemini wrapper
+from google.adk.tools import google_search
 
 from .tools import get_live_weather_global, web_search
 from .logger import get_logger
@@ -10,12 +12,20 @@ load_dotenv(override=True)
 # Initialize agent-level logger
 logger = get_logger("tool_agent.agent")
 
+gemini_model = Gemini(
+    model="gemini-2.5-flash",
+    use_interactions_api=True,  # <--- This unlocks tool calling for 2.5+
+    bypass_multi_tools_limit=True,  #  <---  unlocks the multi-tool restriction
+    # however, you STILL cannot mix internal tools (such as google_search) with
+    # your own custom tools!
+)
+
 
 openai_model = LiteLlm(model="openai/gpt-4o")
 
 root_agent = Agent(
     name="tool_agent",
-    model=openai_model,
+    model=gemini_model,  # openai_model,
     description="Agent that can use tools",
     instruction="""
     You are a helpful travel guide who can provide weather information.
@@ -23,6 +33,7 @@ root_agent = Agent(
     'google_search' tool to find relevant information. 
     Always provide a helpful response to the user.
     """,
+    # Adding internal tools such as google_search won't work!
     tools=[get_live_weather_global, web_search],
 )
 
