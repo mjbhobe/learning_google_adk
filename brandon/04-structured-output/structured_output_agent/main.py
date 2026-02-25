@@ -74,6 +74,12 @@ async def main():
                         # The final response is usually the last text part
                         console.print("\n[bold green]Agent Response:[/bold green]")
                         console.print(Markdown(event.content.parts[0].text))
+            # agent will set state variable = "email" with email generated
+            # recover & display it
+            email_generated = my_session.state.get(
+                "email", "FATAL: I could not recover email!"
+            )
+            console.print(f"[yellow]Email generated: [/yellow] {email_generated}")
 
 
 if __name__ == "__main__":
