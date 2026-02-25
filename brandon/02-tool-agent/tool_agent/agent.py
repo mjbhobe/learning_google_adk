@@ -37,6 +37,7 @@ root_agent = Agent(
     model=Gemini(
         model="gemini-2.5-flash",
         use_interactions_api=True  # <--- This unlocks tool calling for 2.5+
+        bypass_multi_tools_limit=True  #  <---  unlocks the multi-tool restriction
     ),
     # ... rest of your setup
 )
