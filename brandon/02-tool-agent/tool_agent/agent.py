@@ -39,7 +39,30 @@ root_agent = Agent(
         use_interactions_api=True  # <--- This unlocks tool calling for 2.5+
         bypass_multi_tools_limit=True  #  <---  unlocks the multi-tool restriction
     ),
-    # ... rest of your setup
+    description="Agent that can use tools",
+    instruction=""" """
+    You are a helpful travel guide who can provide weather information.
+    Use 'get_live_weather_global' to fetch weather information. For any other queries, use
+    'google_search' tool to find relevant information. 
+    Always provide a helpful response to the user.
+    """ """,
+    tools=[get_live_weather_global, google_search],
 )
+
+How the Model Uses Both
+With this setup, if a user asks: "What's the weather in London and can you find me a good Italian restaurant there?", the agent performs Parallel Tool Calling:
+
+It triggers get_live_weather_global(location_name="london").
+
+Simultaneously, it triggers Google Search(query="best Italian restaurants in London").
+
+It merges both outputs into a single, grounded response.
+
+Important 2026 Constraints
+Billing: When using Google Search in this "mixed mode," you are billed for the model tokens plus a small flat fee per search query executed (if you are on a paid tier).
+
+Vertex AI vs AI Studio: If you use an AI Studio API key, ensure your .env has GOOGLE_GENAI_USE_VERTEXAI=FALSE. If you are using Google Cloud Vertex AI, set it to TRUE.
+
+Search Suggestions: The model will return "Search Suggestions" (chips) at the bottom of the response when using Google Search. The ADK handles rendering these if you are using the built-in adk web UI.
 
 """
