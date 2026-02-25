@@ -5,7 +5,8 @@ from dotenv import load_dotenv
 import asyncio
 import requests
 import httpx
-from logger import get_logger
+
+from .logger import get_logger
 
 load_dotenv(override=True)
 logger = get_logger("tool_agent.tools")
@@ -217,6 +218,7 @@ LOCATION_COORDINATES = {
     "cleveland": "41.4993,-81.6944",
     "cincinnati": "39.1031,-84.5120",
     "columbus": "39.9612,-82.9988",
+    "washington dc": "38.9072,-77.0369",
     "washington, dc": "38.9072,-77.0369",
     "baltimore": "39.2904,-76.6122",
     "pittsburgh": "40.4406,-79.9959",

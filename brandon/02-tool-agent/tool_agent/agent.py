@@ -3,8 +3,8 @@ from dotenv import load_dotenv
 from google.adk.agents import Agent
 from google.adk.models.lite_llm import LiteLlm
 
-from tools import get_live_weather_global, web_search
-from logger import get_logger
+from .tools import get_live_weather_global, web_search
+from .logger import get_logger
 
 load_dotenv(override=True)
 # Initialize agent-level logger
