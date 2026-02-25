@@ -25,3 +25,20 @@ root_agent = Agent(
     """,
     tools=[get_live_weather_global, web_search],
 )
+
+
+"""
+gemini-2.5-flash give tool calling not supported error. Here is a fix, as suggested by Google Gemini
+
+from google.adk.models import Gemini # Use the Gemini wrapper
+
+root_agent = Agent(
+    name="tool_agent",
+    model=Gemini(
+        model="gemini-2.5-flash",
+        use_interactions_api=True  # <--- This unlocks tool calling for 2.5+
+    ),
+    # ... rest of your setup
+)
+
+"""
