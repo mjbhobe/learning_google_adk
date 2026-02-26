@@ -4,6 +4,7 @@
 # sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import asyncio
+import uuid
 from dotenv import load_dotenv
 
 from pathlib import Path
@@ -30,10 +31,12 @@ async def main():
 
     app_name = Path(__file__).parent.resolve().name
     user_id = "adk_adventurer_007"
+    session_id = str(uuid.uuid4())
 
     my_session = await session_service.create_session(
         app_name=app_name,
         user_id=user_id,
+        session_id=session_id,
     )
 
     runner = Runner(
@@ -76,10 +79,15 @@ async def main():
                         console.print(Markdown(event.content.parts[0].text))
             # agent will set state variable = "email" with email generated
             # recover & display it
-            email_generated = my_session.state.get(
+            session = await session_service.get_session(
+                app_name=app_name, user_id=user_id, session_id=session_id
+            )
+            email_generated = session.state.get(
                 "email", "FATAL: I could not recover email!"
             )
-            console.print(f"[yellow]Email generated: [/yellow] {email_generated}")
+            console.print(
+                f"[yellow]Email extracted from session.state.get('email'): [/yellow] {email_generated}"
+            )
 
 
 if __name__ == "__main__":

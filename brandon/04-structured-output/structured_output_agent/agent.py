@@ -6,8 +6,7 @@ from google.adk.models.lite_llm import LiteLlm
 from google.adk.models import Gemini  # Use the Gemini wrapper
 from google.adk.tools import google_search
 
-from structured_output_agent.tools import get_live_weather_global, web_search
-from structured_output_agent.logger import get_logger
+from .logger import get_logger
 
 load_dotenv(override=True)
 # Initialize agent-level logger
@@ -68,7 +67,7 @@ root_agent = LlmAgent(
 )
 
 
-"""
+""" 
 gemini-2.5-flash give tool calling not supported error. Here is a fix, as suggested by Google Gemini
 
 from google.adk.models import Gemini # Use the Gemini wrapper
