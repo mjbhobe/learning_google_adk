@@ -25,7 +25,7 @@ openai_model = LiteLlm(model="openai/gpt-4o")
 
 root_agent = Agent(
     name="tool_agent",
-    model=gemini_model,  # openai_model,
+    model=openai_model,  # gemini_model
     description="Agent that can use tools",
     instruction="""
     You are a helpful travel guide who can provide weather information.
