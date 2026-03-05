@@ -1,8 +1,14 @@
 from datetime import datetime
 from typing import Any
+from rich.console import Console
 
 from google.adk.sessions import InMemorySessionService
 from google.genai import types
+
+from logger import get_logger
+
+console = Console()
+logger = get_logger("customer_service_agent.utils")
 
 
 def update_interaction_history(
@@ -88,16 +94,97 @@ def add_agent_response_to_history(
     )
 
 
+def display_state(
+    session_service, app_name, user_id, session_id, label = "Current State"
+):
+    """Display the current session state in a formatted way."""
+    try:
+        session = session_service.get_session(
+            app_name = app_name, user_id = user_id, session_id = session_id
+        )
+
+        # Format the output with clear sections
+        print(f"\n{'-' * 10} {label} {'-' * 10}")
+
+        # Handle the user name
+        user_name = session.state.get("user_name", "Unknown")
+        print(f"👤 User: {user_name}")
+
+        # Handle purchased courses
+        purchased_courses = session.state.get("purchased_courses", [])
+        if purchased_courses and any(purchased_courses):
+            print("📚 Courses:")
+            for course in purchased_courses:
+                if isinstance(course, dict):
+                    course_id = course.get("id", "Unknown")
+                    purchase_date = course.get("purchase_date", "Unknown date")
+                    print(f"  - {course_id} (purchased on {purchase_date})")
+                elif course:  # Handle string format for backward compatibility
+                    print(f"  - {course}")
+        else:
+            print("📚 Courses: None")
+
+        # Handle interaction history in a more readable way
+        interaction_history = session.state.get("interaction_history", [])
+        if interaction_history:
+            print("📝 Interaction History:")
+            for idx, interaction in enumerate(interaction_history, 1):
+                # Pretty format dict entries, or just show strings
+                if isinstance(interaction, dict):
+                    action = interaction.get("action", "interaction")
+                    timestamp = interaction.get("timestamp", "unknown time")
+
+                    if action == "user_query":
+                        query = interaction.get("query", "")
+                        print(f'  {idx}. User query at {timestamp}: "{query}"')
+                    elif action == "agent_response":
+                        agent = interaction.get("agent", "unknown")
+                        response = interaction.get("response", "")
+                        # Truncate very long responses for display
+                        if len(response) > 100:
+                            response = response[:97] + "..."
+                        print(f'  {idx}. {agent} response at {timestamp}: "{response}"')
+                    else:
+                        details = ", ".join(
+                            f"{k}: {v}"
+                            for k, v in interaction.items()
+                            if k not in ["action", "timestamp"]
+                        )
+                        print(
+                            f"  {idx}. {action} at {timestamp}"
+                            + (f" ({details})" if details else "")
+                        )
+                else:
+                    print(f"  {idx}. {interaction}")
+        else:
+            print("📝 Interaction History: None")
+
+        # Show any additional state keys that might exist
+        other_keys = [
+            k
+            for k in session.state.keys()
+            if k not in ["user_name", "purchased_courses", "interaction_history"]
+        ]
+        if other_keys:
+            print("🔑 Additional State:")
+            for key in other_keys:
+                print(f"  {key}: {session.state[key]}")
+
+        print("-" * (22 + len(label)))
+    except Exception as e:
+        print(f"Error displaying state: {e}")
+
+
 async def process_agent_response(event):
     """Process and display agent response events."""
-    print(f"Event ID: {event.id}, Author: {event.author}")
+    logger.info(f"process_agent_response() -> Event ID: {event.id}, Author: {event.author}")
 
     # Check for specific parts first
     has_specific_part = False
     if event.content and event.content.parts:
         for part in event.content.parts:
             if hasattr(part, "text") and part.text and not part.text.isspace():
-                print(f"  Text: '{part.text.strip()}'")
+                logger.info(f"  Text: '{part.text.strip()}'")
 
     # Check for final response after specific parts
     final_response = None
@@ -110,16 +197,16 @@ async def process_agent_response(event):
         ):
             final_response = event.content.parts[0].text.strip()
             # Use colors and formatting to make the final response stand out
-            print(
-                f"\n{Colors.BG_BLUE}{Colors.WHITE}{Colors.BOLD}╔══ AGENT RESPONSE ═════════════════════════════════════════{Colors.RESET}"
+            console.print(
+                f"\n[bold_blue]╔══ AGENT RESPONSE ═════════════════════════════════════════[/bold_blue]"
             )
-            print(f"{Colors.CYAN}{Colors.BOLD}{final_response}{Colors.RESET}")
-            print(
-                f"{Colors.BG_BLUE}{Colors.WHITE}{Colors.BOLD}╚═════════════════════════════════════════════════════════════{Colors.RESET}\n"
+            console.print(f"[bold_cyan]{final_response}[/bold_cyan]")
+            console.print(
+                f"[bold_blue]╚═════════════════════════════════════════════════════════════[/bold_blue]\n"
             )
         else:
-            print(
-                f"\n{Colors.BG_RED}{Colors.WHITE}{Colors.BOLD}==> Final Agent Response: [No text content in final event]{Colors.RESET}\n"
+            console.print(
+                f"\n[bold_red]==> Final Agent Response: [No text content in final event][bold_red]\n"
             )
 
     return final_response
@@ -128,8 +215,8 @@ async def process_agent_response(event):
 async def call_agent_async(runner, user_id, session_id, query):
     """Call the agent asynchronously with the user's query."""
     content = types.Content(role = "user", parts = [types.Part(text = query)])
-    print(
-        f"\n{Colors.BG_GREEN}{Colors.BLACK}{Colors.BOLD}--- Running Query: {query} ---{Colors.RESET}"
+    console.print(
+        f"\n[bold_green]--- Running Query: {query} ---[/bold_green]"
     )
     final_response_text = None
     agent_name = None
