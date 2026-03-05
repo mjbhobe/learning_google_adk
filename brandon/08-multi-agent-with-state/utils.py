@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 from typing import Any
 from rich.console import Console
@@ -11,7 +12,7 @@ console = Console()
 logger = get_logger("customer_service_agent.utils")
 
 
-def update_interaction_history(
+async def update_interaction_history(
     session_service: InMemorySessionService,
     app_name: str,
     user_id: str,
@@ -31,8 +32,10 @@ def update_interaction_history(
     """
     try:
         # Get current session
-        session = session_service.get_session(
-            app_name = app_name, user_id = user_id, session_id = session_id,
+        session = await session_service.get_session(
+            app_name=app_name,
+            user_id=user_id,
+            session_id=session_id,
         )
 
         # Get current interaction history
@@ -50,17 +53,17 @@ def update_interaction_history(
         updated_state["interaction_history"] = interaction_history
 
         # Create a new session with updated state
-        session_service.create_session(
-            app_name = app_name,
-            user_id = user_id,
-            session_id = session_id,
-            state = updated_state,
+        await session_service.create_session(
+            app_name=app_name,
+            user_id=user_id,
+            session_id=session_id,
+            state=updated_state,
         )
     except Exception as e:
         print(f"Error updating interaction history: {e}")
 
 
-def add_user_query_to_history(
+async def add_user_query_to_history(
     session_service: InMemorySessionService,
     app_name: str,
     user_id: str,
@@ -68,8 +71,11 @@ def add_user_query_to_history(
     query: str,
 ):
     """Add a user query to the interaction history."""
-    update_interaction_history(
-        session_service, app_name, user_id, session_id,
+    await update_interaction_history(
+        session_service,
+        app_name,
+        user_id,
+        session_id,
         {
             "action": "user_query",
             "query": query,
@@ -77,11 +83,11 @@ def add_user_query_to_history(
     )
 
 
-def add_agent_response_to_history(
+async def add_agent_response_to_history(
     session_service, app_name, user_id, session_id, agent_name, response
 ):
     """Add an agent response to the interaction history."""
-    update_interaction_history(
+    await update_interaction_history(
         session_service,
         app_name,
         user_id,
@@ -94,13 +100,13 @@ def add_agent_response_to_history(
     )
 
 
-def display_state(
-    session_service, app_name, user_id, session_id, label = "Current State"
+async def display_state(
+    session_service, app_name, user_id, session_id, label="Current State"
 ):
     """Display the current session state in a formatted way."""
     try:
-        session = session_service.get_session(
-            app_name = app_name, user_id = user_id, session_id = session_id
+        session = await session_service.get_session(
+            app_name=app_name, user_id=user_id, session_id=session_id
         )
 
         # Format the output with clear sections
@@ -177,7 +183,9 @@ def display_state(
 
 async def process_agent_response(event):
     """Process and display agent response events."""
-    logger.info(f"process_agent_response() -> Event ID: {event.id}, Author: {event.author}")
+    logger.info(
+        f"process_agent_response() -> Event ID: {event.id}, Author: {event.author}"
+    )
 
     # Check for specific parts first
     has_specific_part = False
@@ -214,15 +222,13 @@ async def process_agent_response(event):
 
 async def call_agent_async(runner, user_id, session_id, query):
     """Call the agent asynchronously with the user's query."""
-    content = types.Content(role = "user", parts = [types.Part(text = query)])
-    console.print(
-        f"\n[bold_green]--- Running Query: {query} ---[/bold_green]"
-    )
+    content = types.Content(role="user", parts=[types.Part(text=query)])
+    console.print(f"\n[bold_green]--- Running Query: {query} ---[/bold_green]")
     final_response_text = None
     agent_name = None
 
     # Display state before processing the message
-    display_state(
+    await display_state(
         runner.session_service,
         runner.app_name,
         user_id,
@@ -232,7 +238,7 @@ async def call_agent_async(runner, user_id, session_id, query):
 
     try:
         async for event in runner.run_async(
-            user_id = user_id, session_id = session_id, new_message = content
+            user_id=user_id, session_id=session_id, new_message=content
         ):
             # Capture the agent name from the event if available
             if event.author:
@@ -242,11 +248,11 @@ async def call_agent_async(runner, user_id, session_id, query):
             if response:
                 final_response_text = response
     except Exception as e:
-        print(f"{Colors.BG_RED}{Colors.WHITE}ERROR during agent run: {e}{Colors.RESET}")
+        console.print(f"[dark_red]ERROR during agent run: {e}[/dark_red]")
 
     # Add the agent response to interaction history if we got a final response
     if final_response_text and agent_name:
-        add_agent_response_to_history(
+        await add_agent_response_to_history(
             runner.session_service,
             runner.app_name,
             user_id,
@@ -256,7 +262,7 @@ async def call_agent_async(runner, user_id, session_id, query):
         )
 
     # Display state after processing the message
-    display_state(
+    await display_state(
         runner.session_service,
         runner.app_name,
         user_id,
@@ -264,5 +270,5 @@ async def call_agent_async(runner, user_id, session_id, query):
         "State AFTER processing",
     )
 
-    print(f"{Colors.YELLOW}{'-' * 30}{Colors.RESET}")
+    console.print(f"[yellow]{'-' * 30}[/yellow]")
     return final_response_text
