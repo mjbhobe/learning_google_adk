@@ -27,7 +27,7 @@ initial_state = {
 
 
 async def main():
-    # --- create the common session across agents ----------
+    # ---- create the common session across agents ----------
     session = await session_service.create_session(
         app_name=APP_NAME,
         user_id=USER_ID,
