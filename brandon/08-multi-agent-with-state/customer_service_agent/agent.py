@@ -7,8 +7,7 @@ from google.adk.models.lite_llm import LiteLlm
 # from .sub_agents.course_support_agent.agent import course_support_agent
 # from .sub_agents.order_agent.agent import order_agent
 from customer_service_agent.sub_agents.policy_agent.agent import policy_agent
-
-# from .sub_agents.sales_agent.agent import sales_agent
+from customer_service_agent.sub_agents.sales_agent.agent import sales_agent
 
 load_dotenv(override=True)
 openai_model = LiteLlm(model="openai/gpt-4o", api_key=os.getenv("OPENAI_API_KEY"))
@@ -83,6 +82,6 @@ customer_service_agent = Agent(
     Always maintain a helpful and professional tone. If you're unsure which agent to delegate to,
     ask clarifying questions to better understand the user's needs.
     """,
-    sub_agents=[policy_agent],  # , sales_agent, course_support_agent, order_agent],
+    sub_agents=[policy_agent, sales_agent],  # course_support_agent, order_agent],
     tools=[],
 )

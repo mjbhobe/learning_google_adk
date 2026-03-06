@@ -7,7 +7,7 @@ from google.adk.runners import Runner
 
 from logger import get_logger
 from customer_service_agent.agent import customer_service_agent
-from utils import add_user_query_to_history, call_agent_async
+from utils import add_user_query_to_history, call_agent_async, display_state
 
 load_dotenv(override=True)
 console = Console()
@@ -54,23 +54,20 @@ async def main():
             break
 
         await add_user_query_to_history(
-            session_service,
-            APP_NAME,
-            USER_ID,
-            SESSION_ID,
+            session,
             user_input,
         )
 
         # Process the user query through the agent
-        await call_agent_async(runner, USER_ID, SESSION_ID, user_input)
+        await call_agent_async(runner, session, USER_ID, SESSION_ID, user_input)
 
     # Dump Session at end of conversation
-    final_session = await session_service.get_session(
-        app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID
+    console.print(f"\n[bold blue]{'-*-'*20}[/bold blue]")
+    await display_state(
+        session,
+        "Final Session State",
     )
-    print("\nFinal Session State:")
-    for key, value in final_session.state.items():
-        print(f"{key}: {value}")
+    console.print(f"\n[bold blue]{'-*-'*20}[/bold blue]")
 
 
 if __name__ == "__main__":
