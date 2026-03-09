@@ -6,3 +6,8 @@ python-weather
 pyyaml
 rich
 yfinance
+httpx
+uvicorn
+litellm
+pydantic
+streamlit
