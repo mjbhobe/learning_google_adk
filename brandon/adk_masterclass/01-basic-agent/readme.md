@@ -63,8 +63,33 @@ This structure ensures that ADK can automatically discover and load your agent w
 - **description** (Optional, but recommended): A concise summary of the agent's capabilities. Used for other agents to determine if they should route a task to this agent.
 
 ### 2. Model (`model`)
-- Specifies which LLM powers the agent (e.g., "gemini-2.0-flash")
+- Specifies which LLM powers the agent (e.g., "gemini-2.5-flash")
 - Affects the agent's capabilities, cost, and performance
+
+**NOTE:** In all our examples, we have used OpenAI as our LLM of choice. If you choose to use a non-Google LLM (such as OpenAI or Clause Sonnet), you'll have to make the following changes to your code
+
+```python
+from google.adk.agents import Agent
+# import LiteLlm at the top of your code
+from google.adk.models.lite_llm import LiteLlm
+
+# instantiate your non-Google LLM as follows
+openai_model = LiteLlm(model="openai/gpt-4o")
+# or if usingh Claude
+claude_model = LiteLlm(model="anthropic/claude-sonnet-4-6")
+
+# see: https://docs.litellm.ai/docs/providers
+# for value for various non-Google models
+
+# then define your agent as below
+root_agent = LlmAgent(
+    name="greeting_agent",
+    model=openai_model, # or model=claude_model
+    description="....",
+    instructions="....",
+    ...
+)
+```
 
 ### 3. Instructions (`instruction`)
 The most critical parameter for shaping your agent's behavior. It defines:
