@@ -17,14 +17,15 @@ Use Sequential Agents when you need a deterministic, step-by-step workflow where
 In this example, we've created `lead_qualification_agent` as a Sequential Agent that implements a lead qualification pipeline for sales teams. This Sequential Agent orchestrates three specialized sub-agents:
 
 1. **Lead Validator Agent**: Checks if the lead information is complete enough for qualification
+
    - Validates for required information like contact details and interest
    - Outputs a simple "valid" or "invalid" with a reason
-
 2. **Lead Scorer Agent**: Scores valid leads on a scale of 1-10
+
    - Analyzes factors like urgency, decision-making authority, budget, and timeline
    - Provides a numeric score with a brief justification
-
 3. **Action Recommender Agent**: Suggests next steps based on the validation and score
+
    - For invalid leads: Recommends what information to gather
    - For low-scoring leads (1-3): Suggests nurturing actions
    - For medium-scoring leads (4-7): Suggests qualifying actions
@@ -39,6 +40,7 @@ The `lead_qualification_agent` Sequential Agent orchestrates this process by:
 3. Running the Recommender last (which can access both validation and scoring results)
 
 The output of each sub-agent is stored in the session state using the `output_key` parameter:
+
 - `validation_status`
 - `lead_score`
 - `action_recommendation`
@@ -76,6 +78,7 @@ The output of each sub-agent is stored in the session state using the `output_ke
 ### Setup
 
 1. Activate the virtual environment from the root directory:
+
 ```bash
 # macOS/Linux:
 source ../.venv/bin/activate
@@ -85,7 +88,8 @@ source ../.venv/bin/activate
 ..\.venv\Scripts\Activate.ps1
 ```
 
-2. Copy the `.env.example` file to `.env` and add your Google API key:
+2. Copy the `.env.example` file to `.env` and add your Google API key or OPENAI_API_KEY or ANTHROPIC_API_KEY (depending on the LLM you prefer)
+
 ```
 GOOGLE_API_KEY=your_api_key_here
 ```
@@ -104,6 +108,7 @@ If using `adk web`, select "lead_qualification_agent" from the dropdown menu in 
 Try these example interactions:
 
 ### Qualified Lead Example:
+
 ```
 Lead Information:
 Name: Sarah Johnson
@@ -118,6 +123,7 @@ Notes: Currently using a competitor's product but unhappy with performance
 ```
 
 ### Unqualified Lead Example:
+
 ```
 Lead Information:
 Name: John Doe
@@ -137,4 +143,4 @@ ADK offers different types of workflow agents for different needs:
 ## Additional Resources
 
 - [ADK Sequential Agents Documentation](https://google.github.io/adk-docs/agents/workflow-agents/sequential-agents/)
-- [Full Code Development Pipeline Example](https://google.github.io/adk-docs/agents/workflow-agents/sequential-agents/#full-example-code-development-pipeline) 
+- [Full Code Development Pipeline Example](https://google.github.io/adk-docs/agents/workflow-agents/sequential-agents/#full-example-code-development-pipeline)

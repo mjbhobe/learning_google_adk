@@ -10,7 +10,7 @@ import logging
 from google.adk.agents import Agent
 from google.adk.models.lite_llm import LiteLlm
 
-from .tools import get_cpu_info
+from .tools import get_disk_info
 
 # 1. Silence Pydantic's internal validation warnings
 logging.getLogger("pydantic").setLevel(logging.ERROR)
