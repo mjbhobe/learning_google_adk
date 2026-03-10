@@ -33,7 +33,7 @@ activities_agent: Suggests local experiences
 Agents communicate over REST using FastAPI and respond with structured JSON outputs.
 
 ## 📂 Project Structure
-
+```
 ADK_demo/
 
 ├── agents/
@@ -55,7 +55,7 @@ ADK_demo/
 ├── requirements.txt
 
 └── README.md
-
+```
 ## 🚀 Getting Started
 
 1. Setup Environment
