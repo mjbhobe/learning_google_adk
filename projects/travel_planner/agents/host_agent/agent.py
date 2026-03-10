@@ -42,6 +42,12 @@ async def execute(request):
         f"within a total budget of {request['budget']}."
         f"Call the flights, stays, and activities agents for results."
     )
+
+    print("----- In host_agent -> execute() function ------")
+    print(f"Prompt: {prompt}")
+    print("------------------------------------------------")
+
+    prompt = textwrap.dedent(prompt).strip()
     message = types.Content(role="user", parts=[types.Part(text=prompt)])
     async for event in runner.run_async(
         user_id=USER_ID, session_id=SESSION_ID, new_message=message

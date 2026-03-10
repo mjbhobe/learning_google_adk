@@ -36,14 +36,19 @@ async def execute(request):
         app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID
     )
 
-    prompt = textwrap.dedent(
+    prompt = (
         f"User is flying from {request['origin']} to {request['destination']} "
         f"from {request['start_date']} to {request['end_date']}, with a budget "
         f"of {request['budget']}. "
         "Suggest 2-3 realistic flight options. For each option, include airline, "
         "departure time, return time, price, and mention if it's direct or has layovers."
-    ).strip()
+    )
 
+    print("----- In flight_agent -> execute() function ------")
+    print(f"Prompt: {prompt}")
+    print("------------------------------------------------")
+
+    prompt = textwrap.dedent(prompt).strip()
     message = types.Content(role="user", parts=[types.Part(text=prompt)])
 
     async for event in runner.run_async(
