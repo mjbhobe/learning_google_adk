@@ -25,22 +25,44 @@ I proactively modified the codebase logic to cleanly support dynamic URLs (Cloud
    - [start.sh](file:///home/mjbhobe/code/git-projects/learning_google_adk/projects/travel_planner/start.sh) evaluates a `SERVICE_TYPE` environment variable. This allows running 5 unique Microservices via a singular Cloud Run Container Image!
 4. **[deploy.sh](file:///home/mjbhobe/code/git-projects/learning_google_adk/projects/travel_planner/deploy.sh)**: Orcehstrates all deployments. First it pushes the single Docker image. Then it calls `gcloud run deploy` 5 distinct times linking it dynamically using Environment arguments matching each agent.
 
-## Steps to Deploy!
+## 📋 Pre-requisites
 
-First ensure you have the `gcloud CLI` initialized and you are authenticated (`gcloud auth login`).
+Before deploying or tearing down, ensure you have the following ready:
+1. **Google Cloud Account**: A Google Cloud account with an active billing-enabled project.
+2. **Google Cloud CLI (`gcloud`)**: Installed and configured on your machine.
+   - [Download & Install gcloud CLI](https://cloud.google.com/sdk/docs/install)
+   - Authenticate by running: `gcloud auth login`
+   - Set your active project (if not automatically set): `gcloud config set project YOUR_PROJECT_ID`
+3. **OpenAI API Key**: Required for the generative AI agent execution.
 
-1. `cd /home/mjbhobe/code/git-projects/learning_google_adk/projects/travel_planner`
-2. Make sure execution permissions are granted to the newly generated scripts:
-   ```bash
-   chmod +x start.sh deploy.sh
-   ```
-3. Establish your OpenAI API key for generation within the Cloud Run containers:
+## 🚀 Steps to Deploy!
+
+1. `cd <<travel_planner folder>>`
+2. Establish your OpenAI API key for generation within the Cloud Run containers:
+
+   **Linux / macOS (Bash):**
    ```bash
    export OPENAI_API_KEY="sk-something-private"
    ```
+   **Windows (PowerShell):**
+   ```powershell
+   $env:OPENAI_API_KEY="sk-something-private"
+   ```
+
+3. Make sure execution permissions are granted to the newly generated scripts (Linux/macOS only):
+   ```bash
+   chmod +x start.sh deploy.sh
+   ```
+
 4. Perform the massive Cloud build execution!
+
+   **Linux / macOS (Bash):**
    ```bash
    ./deploy.sh
+   ```
+   **Windows (PowerShell):**
+   ```powershell
+   .\deploy.ps1
    ```
 
 Wait approx 5-10 minutes. At termination, it will gracefully output the newly configured `Streamlit` URL accessible across the web!
@@ -49,12 +71,18 @@ Wait approx 5-10 minutes. At termination, it will gracefully output the newly co
 
 To avoid incurring unwanted charges after testing the deployment, you can completely destroy all Cloud Run services and the Artifact Registry image repository using the included teardown script.
 
-Make sure it's executable:
+Make sure it's executable (Linux/macOS only):
 ```bash
 chmod +x teardown.sh
 ```
 
-Execute it:
+Execute the cleanup:
+
+**Linux / macOS (Bash):**
 ```bash
 ./teardown.sh
+```
+**Windows (PowerShell):**
+```powershell
+.\teardown.ps1
 ```
