@@ -9,11 +9,13 @@ from rich.console import Console
 
 from common.a2a_client import call_agent
 
+import os
+
 # BAD PRACTICE: don't hard-code this into Python file
 # better to externalize it into the .env file
-FLIGHT_URL = "http://localhost:8001/run"
-STAY_URL = "http://localhost:8002/run"
-ACTIVITIES_URL = "http://localhost:8003/run"
+FLIGHT_URL = os.getenv("FLIGHT_URL", "http://localhost:8001/run")
+STAY_URL = os.getenv("STAY_URL", "http://localhost:8002/run")
+ACTIVITIES_URL = os.getenv("ACTIVITIES_URL", "http://localhost:8003/run")
 
 console = Console()
 

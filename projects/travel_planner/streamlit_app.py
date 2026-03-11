@@ -33,7 +33,8 @@ if st.button("Plan My Trip ✨"):
             "end_date": str(end_date),
             "budget": budget,
         }
-        response = requests.post("http://localhost:8000/run", json=payload)
+        host_agent_url = os.getenv("HOST_AGENT_URL", "http://localhost:8000/run")
+        response = requests.post(host_agent_url, json=payload)
         if response.ok:
             data = response.json()
             st.subheader("✈️ Flights")
