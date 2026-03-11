@@ -22,13 +22,12 @@ async def run(payload):
     # Print what the host agent is sending
     print(f"Incoming payload: {payload}")
     flights = await call_agent(FLIGHT_URL, payload)
-    stay, activities = "", ""
-    # stay = await call_agent(STAY_URL, payload)
-    # activities = await call_agent(ACTIVITIES_URL, payload)
+    stay = await call_agent(STAY_URL, payload)
+    activities = await call_agent(ACTIVITIES_URL, payload)
     # Log outputs
     print(f"Flights: {flights}")
-    # print(f"Stay: {stay}")
-    # print(f"Activities: {activities}")
+    print(f"Stay: {stay}")
+    print(f"Activities: {activities}")
     # Ensure all are dicts before access
     flights = flights if isinstance(flights, dict) else {}
     stay = stay if isinstance(stay, dict) else {}

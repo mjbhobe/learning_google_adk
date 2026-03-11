@@ -1,3 +1,5 @@
+import os
+from dotenv import load_dotenv
 import textwrap
 
 from google.adk.agents import Agent
@@ -8,8 +10,11 @@ from google.genai import types
 
 from .prompts import FLIGHT_AGENT_INSTRUCTIONS
 
-USER_ID = "user_1"
-SESSION_ID = "session_001"
+load_dotenv(override=True)
+assert os.getenv("OPENAI_API_KEY"), "FATAL: flight_agent -> OPENAI_API_KEY not set!"
+
+USER_ID = "user_flights"
+SESSION_ID = "session_flights"
 APP_NAME = "flight_app"
 
 
@@ -21,15 +26,15 @@ flight_agent = Agent(
 )
 
 
-session_service = InMemorySessionService()
-runner = Runner(
-    agent=flight_agent,
-    app_name=APP_NAME,
-    session_service=session_service,
-)
-
-
 async def execute(request):
+
+    session_service = InMemorySessionService()
+    runner = Runner(
+        agent=flight_agent,
+        app_name=APP_NAME,
+        session_service=session_service,
+    )
+
     # 🔧 Ensure session is created before running the agent
     await session_service.create_session(
         app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID

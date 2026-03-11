@@ -1,3 +1,4 @@
+import os
 from dotenv import load_dotenv
 import textwrap
 import json
@@ -11,6 +12,7 @@ from google.genai import types
 from .prompts import ACTIVITY_AGENT_INSTRUCTIONS
 
 load_dotenv(override=True)
+assert os.getenv("OPENAI_API_KEY"), "FATAL: activities_agent -> OPENAI_API_KEY not set!"
 
 activities_agent = Agent(
     name="activities_agent",
@@ -24,27 +26,30 @@ USER_ID = "user_activities"
 SESSION_ID = "session_activities"
 APP_NAME = "activities_app"
 
-# configure a runner for the above agent
-session_service = InMemorySessionService()
-runner = Runner(
-    agent=activities_agent,
-    app_name=APP_NAME,
-    session_service=session_service,
-)
-
 
 # and a function to execute the agent
 async def execute(request):
+    # configure a runner for the above agent
+    session_service = InMemorySessionService()
+    runner = Runner(
+        agent=activities_agent,
+        app_name=APP_NAME,
+        session_service=session_service,
+    )
     await session_service.create_session(
         app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID
     )
-    prompt = textwrap.dedent(
+    prompt = (
         f"User is flying to {request['destination']} from {request['start_date']} to {request['end_date']}, "
         f"with a budget of {request['budget']}."
         f"Suggest 2-3 activities, each with name, description, price estimate, and duration. "
-        f"Respond in JSON format using the key 'activities' with a list of activity objects."
-    ).strip()
+    )
+    print("----- In activities_agent -> execute() function ------")
+    print(f"Prompt: {prompt}")
+    print("------------------------------------------------")
+
     # build user-query
+    prompt = textwrap.dedent(prompt).strip()
     message = types.Content(role="user", parts=[types.Part(text=prompt)])
     # and run the user-query
     async for event in runner.run_async(

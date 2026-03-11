@@ -1,3 +1,4 @@
+import os
 from dotenv import load_dotenv
 import textwrap
 
@@ -10,6 +11,7 @@ from google.genai import types
 from .prompts import HOST_AGENT_INSTRUCTIONS
 
 load_dotenv(override=True)
+assert os.getenv("OPENAI_API_KEY"), "FATAL: host_agent -> OPENAI_API_KEY not set!"
 
 host_agent = Agent(
     name="host_agent",
@@ -23,16 +25,16 @@ USER_ID = "user_host"
 SESSION_ID = "session_host"
 APP_NAME = "host_app"
 
-session_service = InMemorySessionService()
-
-runner = Runner(
-    agent=host_agent,
-    app_name=APP_NAME,
-    session_service=session_service,
-)
-
 
 async def execute(request):
+    session_service = InMemorySessionService()
+
+    runner = Runner(
+        agent=host_agent,
+        app_name=APP_NAME,
+        session_service=session_service,
+    )
+
     # Ensure session exists
     await session_service.create_session(
         app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID

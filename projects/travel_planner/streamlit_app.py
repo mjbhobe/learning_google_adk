@@ -2,8 +2,14 @@
 travel_ui.py - streamlit based front-end for the travel planner app
 """
 
+import os
+from dotenv import load_dotenv
 import streamlit as st
 import requests
+
+# load API keys
+load_dotenv(override=True)
+assert os.getenv("OPENAI_API_KEY"), "FATAL: OPENAI_API_KEY not set!"
 
 # page configuration
 st.set_page_config(page_title="ADK-Powered Travel Planner", page_icon="✈️")

@@ -1,3 +1,4 @@
+import os
 from dotenv import load_dotenv
 import textwrap
 
@@ -8,6 +9,9 @@ from google.adk.sessions import InMemorySessionService
 from google.genai import types
 
 from .prompts import STAY_AGENT_INSTRUCTIONS
+
+load_dotenv(override=True)
+assert os.getenv("OPENAI_API_KEY"), "FATAL: stay_agent -> OPENAI_API_KEY not set!"
 
 stay_agent = Agent(
     name="stay_agent",
@@ -20,24 +24,28 @@ USER_ID = "user_stay"
 SESSION_ID = "session_stay"
 APP_NAME = "stay_app"
 
-session_service = InMemorySessionService()
-runner = Runner(
-    agent=stay_agent,
-    app_name=APP_NAME,
-    session_service=session_service,
-)
-
 
 async def execute(request):
+    session_service = InMemorySessionService()
+    runner = Runner(
+        agent=stay_agent,
+        app_name=APP_NAME,
+        session_service=session_service,
+    )
+
     await session_service.create_session(
         app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID
     )
 
-    prompt = textwrap.dedent(
+    prompt = (
         f"User is staying in {request['destination']} from {request['start_date']} to {request['end_date']} "
         f"with a budget of {request['budget']}. Suggest stay options."
-    ).strip()
+    )
+    print("----- In stay_agent -> execute() function ------")
+    print(f"Prompt: {prompt}")
+    print("------------------------------------------------")
 
+    prompt = textwrap.dedent(prompt).strip()
     message = types.Content(role="user", parts=[types.Part(text=prompt)])
 
     async for event in runner.run_async(
