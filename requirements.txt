@@ -11,3 +11,7 @@ uvicorn
 litellm
 pydantic
 streamlit
+pypdf 
+faiss-cpu 
+langchain-community
+langchain-openai
