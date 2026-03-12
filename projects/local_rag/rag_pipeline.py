@@ -32,7 +32,9 @@ def build_local_index(pdf_folder: str):
     num_files = 0
 
     for file in pdf_path.glob("*.pdf"):
-        console.print(f"  - [dark_yellow]Loading {str(file)}...[/dark_yellow]")
+        tail_parts = file.parts[-2:]
+        display_path = "...\\" + "\\".join(tail_parts)
+        console.print(f"  - [dark_yellow]Loading {display_path}...[/dark_yellow]")
         loader = PyPDFLoader(str(file))
         loaded_docs = loader.load()
         for doc in loaded_docs:
