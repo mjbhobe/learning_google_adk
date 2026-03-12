@@ -3,6 +3,7 @@ import os
 import pathlib
 from dotenv import load_dotenv
 from rich.console import Console
+from rich.markdown import Markdown
 
 from google.adk.runners import Runner
 from google.adk.agents import Agent
@@ -23,6 +24,7 @@ APP_NAME = "local_rag_app"
 USER_ID = "adk_user_007"
 
 console = Console()
+
 
 async def run_agent_query(
     agent: Agent,
@@ -92,7 +94,8 @@ async def main():
                 session,
             )
             # user_query = "What are the key findings in the documents?"
-            console.print(f"\n🤖 Agent Response:\n{response}")
+            console.print(f"\n🤖 Agent Response:\n")
+            console.print(Markdown(response))
 
 
 if __name__ == "__main__":
