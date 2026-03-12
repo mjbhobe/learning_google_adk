@@ -34,7 +34,11 @@ def build_local_index(pdf_folder: str):
     for file in pdf_path.glob("*.pdf"):
         console.print(f"  - [dark_yellow]Loading {str(file)}...[/dark_yellow]")
         loader = PyPDFLoader(str(file))
-        documents.extend(loader.load())
+        loaded_docs = loader.load()
+        for doc in loaded_docs:
+            doc.metadata["source"] = file.name  # store filename only
+            doc.metadata["page"] = doc.metadata.get("page", 0) + 1  # 1-indexed
+        documents.extend(loaded_docs)
         num_files += 1
 
     print(f"Loaded {num_files} PDFs from {str(pdf_path)}")

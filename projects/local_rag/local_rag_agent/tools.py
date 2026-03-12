@@ -26,4 +26,11 @@ async def search_faiss(query: str) -> str:
     )
     results = db.similarity_search(query, k=3)
 
-    return "\n---\n".join([res.page_content for res in results])
+    sections = []
+    for res in results:
+        source = res.metadata.get("source", "Unknown")
+        page = res.metadata.get("page", "?")
+        sections.append(
+            f"[Source: {source}, Page: {page}]\n{res.page_content}"
+        )
+    return "\n---\n".join(sections) if sections else "No relevant information found in the document store."
