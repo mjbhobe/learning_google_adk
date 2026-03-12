@@ -8,9 +8,9 @@ from langchain_openai import OpenAIEmbeddings
 load_dotenv(override=True)
 assert os.getenv(
     "OPENAI_API_KEY"
-), f"FATAL ERROR: {pathlib.Path(__file__).name}: OPENAI_API_KEY not defined!"
+), f"FATAL ERROR: {pathlib.Path(__file__).name} ->  OPENAI_API_KEY not defined!"
 
-FAISS_INDEX_PATH = pathlib.Path(__file__).parent / "faiss_index"
+FAISS_INDEX_PATH = pathlib.Path(__file__).parent.parent / "faiss_index"
 
 
 async def search_faiss(query: str) -> str:

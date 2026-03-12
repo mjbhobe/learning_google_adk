@@ -6,6 +6,7 @@ rag_pipeline.py
 import os
 import pathlib
 from dotenv import load_dotenv
+from rich.console import Console
 
 
 from langchain_community.document_loaders import PyPDFLoader
@@ -16,19 +17,22 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 load_dotenv(override=True)
 assert os.getenv(
     "OPENAI_API_KEY"
-), f"FATAL ERROR: {pathlib.Path(__file__).name}: OPENAI_API_KEY not defined!"
+), f"FATAL ERROR: {pathlib.Path(__file__).name} -> OPENAI_API_KEY not defined!"
 
 FAISS_INDEX_PATH = pathlib.Path(__file__).parent / "faiss_index"
+console = Console()
 
 
 def build_local_index(pdf_folder: str):
     """Loads PDFs and builds a FAISS index using OpenAI Embeddings."""
     pdf_path = pathlib.Path(pdf_folder).expanduser()
     documents = []
+    console.print(f"[yellow]Loading PDFs from {str(pdf_path)}...[/yellow]")
 
     num_files = 0
 
     for file in pdf_path.glob("*.pdf"):
+        console.print(f"  - [dark_yellow]Loading {str(file)}...[/dark_yellow]")
         loader = PyPDFLoader(str(file))
         documents.extend(loader.load())
         num_files += 1
@@ -42,16 +46,21 @@ def build_local_index(pdf_folder: str):
     embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 
     # This will call the OpenAI API to generate embeddings for your text chunks
+    console.print("[yellow]Building FAISS index...[/yellow]", end="")
     vectorstore = FAISS.from_documents(docs, embeddings)
     vectorstore.save_local(FAISS_INDEX_PATH)
-    print(f"✅ FAISS index (OpenAI) saved to {str(FAISS_INDEX_PATH)}")
+    console.print(
+        f"\r[green]✅ FAISS index (OpenAI) saved to {str(FAISS_INDEX_PATH)}[/green]"
+    )
 
 
 if __name__ == "__main__":
     if not FAISS_INDEX_PATH.exists():
         pdf_folder = pathlib.Path(__file__).parent / "docs"
-        print(f"Building FAISS index from files in folder {str(pdf_folder)}...", end="")
+        console.print(
+            f"Building FAISS index from files in folder {str(pdf_folder)}...", end=""
+        )
         build_local_index(pdf_folder)
-        print("Done!")
+        console.print("Done!")
     else:
         print(f"Faiss index exists at {str(FAISS_INDEX_PATH)}")
