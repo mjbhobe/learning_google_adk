@@ -14,7 +14,7 @@ assert os.getenv("GOOGLE_API_KEY") is not None, "FATAL: GOOGLE_API_KEY is not se
 
 
 llm = Gemini(
-    model="gemini-2.5-flash",
+    model="gemini-3-flash-preview",
     api_key=os.getenv("GOOGLE_API_KEY"),
     temperature=0.7,
     top_p=0.95,
