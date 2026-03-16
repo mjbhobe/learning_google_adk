@@ -26,7 +26,7 @@ For questions not related to weather or time, respond with a polite error messag
 
 root_agent = LlmAgent(
     name="agent_with_functional_tools",
-    model=LiteLlm(model="anthropic/claude-sonnet-4-6"),
+    model="gemini-2.5-flash",  # LiteLlm(model="anthropic/claude-sonnet-4-6"),
     # description="A helpful agent that answers user's questions about time & weather",
     instruction=textwrap.dedent(PROMPT).strip(),
     tools=[get_current_time, get_live_weather_global],
