@@ -78,5 +78,5 @@ async def run_agent_query(
                 # console.print("\n[bold green]Agent Response:[/bold green]")
                 # console.print(Markdown(event.content.parts[0].text))
                 final_response = event.content.parts[0].text
-                logger.info(f"\n   final_response -> {final_response}\n")
+                logger.debug(f"\n   final_response -> {final_response}\n")
                 return final_response
