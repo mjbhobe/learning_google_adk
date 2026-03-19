@@ -1,0 +1,7 @@
+google-adk
+litellm
+yfinance
+python-dotenv
+rich
+streamlit
+nest-asyncio

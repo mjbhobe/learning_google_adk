@@ -13,6 +13,7 @@ dependencies = [
     "langchain-community>=0.4.1",
     "langchain-openai>=1.1.11",
     "litellm>=1.80.16",
+    "nest-asyncio>=1.6.0",
     "psutil>=7.2.2",
     "pydantic>=2.12.5",
     "pypdf>=6.7.0",
