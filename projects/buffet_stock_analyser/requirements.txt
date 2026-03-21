@@ -5,3 +5,6 @@ python-dotenv
 rich
 streamlit
 nest-asyncio
+uvicorn
+fastapi
+requests

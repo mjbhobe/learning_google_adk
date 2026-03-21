@@ -1,4 +1,4 @@
-from common.a2a_server import create_app
+from buffet_bot.common.a2a_server import create_app
 from .task_manager import run
 
 # -----------------------------------------------------------------------------

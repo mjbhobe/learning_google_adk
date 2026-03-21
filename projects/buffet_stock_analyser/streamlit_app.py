@@ -1,82 +1,67 @@
 import streamlit as st
 import os
+import requests
 from dotenv import load_dotenv
 
-load_dotenv(override=True)
-if not os.getenv("ANTHROPIC_API_KEY"):
-    st.error("FATAL: `ANTHROPIC_API_KEY` not found in `.env` file!")
-    st.stop()
+from utils import get_stock_info
 
+load_dotenv(override=True)
+
+# ── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(page_title="Buffett AI", page_icon="💰")
 st.title("💰 Buffett-Bot: Agentic Value Analyst")
-st.markdown("Powered by **Google ADK** and **Claude 4.6 Sonnet**.")
+st.markdown("Powered by **Google ADK**, **Claude 4.6 Sonnet** and a **FastAPI** agent service.")
 
+# ── Server URL (mirrors main.py HOST_AGENT_URL) ───────────────────────────────
+HOST_AGENT_URL = os.getenv("HOST_AGENT_URL", "http://localhost:8000/run")
+
+# ── Input ─────────────────────────────────────────────────────────────────────
 symbol = st.text_input("Enter Ticker Symbol", value="AAPL").strip().upper()
 
-
-@st.cache_resource
-def _init_pipeline():
-    """One-time heavy initialisation (cached across Streamlit reruns).
-
-    Imports google-adk, litellm, yfinance and builds the agent pipeline.
-    Everything expensive is inside this function so the Streamlit server
-    starts instantly.
-    """
-    import nest_asyncio
-
-    nest_asyncio.apply()
-
-    from google.adk.sessions import InMemorySessionService
-    from buffet_bot.agent import root_agent
-
-    return root_agent, InMemorySessionService()
-
-
 if st.button("Analyze Stock"):
-    from pathlib import Path
-    import asyncio
-    import uuid
+    with st.status(f"📡 Fetching live data for **{symbol}**…", expanded=True) as status:
 
-    from utils import get_stock_info, run_agent_query
+        # Step 1 — pull financial data (same as main.py)
+        try:
+            company_info, raw_financials = get_stock_info(symbol)
+        except Exception as exc:
+            st.error(f"Failed to fetch data for **{symbol}**: {exc}")
+            st.stop()
 
-    with st.status("Initialising agents (first run only)…", expanded=True) as status:
-        workflow, session_service = _init_pipeline()
-        status.update(label=f"📡 Fetching live data for **{symbol}**…")
+        payload = {
+            "symbol": symbol,
+            "company_info": company_info,
+            "raw_financials": raw_financials,
+        }
 
-        app_name = Path(__file__).parent.resolve().name
-        user_id = "buffet_analyst_007"
-        session_id = str(uuid.uuid4())
-
-        company_info, raw_financials = get_stock_info(symbol)
-
+        # Step 2 — call the FastAPI agent service (same as main.py)
         status.update(label="🤖 Running Buffett analysis pipeline…")
-
-        async def _run_analysis():
-            my_session = await session_service.create_session(
-                app_name=app_name,
-                user_id=user_id,
-                session_id=session_id,
-                state={
-                    "symbol": symbol,
-                    "company_info": company_info,
-                    "raw_financials": raw_financials,
-                },
+        try:
+            response = requests.post(HOST_AGENT_URL, json=payload, timeout=120)
+        except requests.exceptions.ConnectionError:
+            st.error(
+                f"Could not connect to the agent server at `{HOST_AGENT_URL}`. "
+                "Make sure you have started the server with `./servers.sh` (or "
+                "`uvicorn buffet_bot.agents.__main__:app --port 8000`) before "
+                "running the Streamlit app."
             )
-            return await run_agent_query(
-                agent=workflow,
-                session_service=session_service,
-                app_name=app_name,
-                user_id=user_id,
-                user_query=f"Analyse the stock {symbol}",
-                session=my_session,
-            )
+            st.stop()
 
-        loop = asyncio.get_event_loop()
-        final_report = loop.run_until_complete(_run_analysis())
-        status.update(label="✅ Analysis complete!", state="complete", expanded=False)
+        # Step 3 — render result
+        if response.ok:
+            data = response.json().get("formatted_report", {})
+            analysis_report = data.get("analysis_report") if isinstance(data, dict) else None
+            status.update(label="✅ Analysis complete!", state="complete", expanded=False)
+        else:
+            status.update(label="❌ Agent request failed.", state="error", expanded=False)
+            st.error(
+                f"Agent returned HTTP {response.status_code}. "
+                "Check the server logs for details."
+            )
+            st.stop()
 
     st.markdown("---")
-    if final_report:
-        st.markdown(final_report)
+    if analysis_report:
+        st.markdown(analysis_report)
     else:
-        st.error("No report was generated. The agent did not return a final response.")
+        st.error("No report was returned by the agent. Check the server logs.")

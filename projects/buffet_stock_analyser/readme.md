@@ -1,6 +1,6 @@
 # 💰 Buffett-Bot: Agentic Value Stock Analyser
 
-An agentic AI application that applies **Warren Buffett's value-investing criteria** to any publicly traded stock and generates an investor-grade Markdown report — powered by **Google ADK** and **Claude 4.6 Sonnet**.
+An agentic AI application that applies **Warren Buffett's value-investing criteria** to any publicly traded stock and generates an investor-grade Markdown report — powered by **Google ADK**, **Claude 4.6 Sonnet**, and a **FastAPI agent service**.
 
 > **⚠️ Disclaimer:** This project is purely educational — built to demonstrate Google ADK agent workflows. It is not financial advice. Seek a professional advisor before making investment decisions.
 
@@ -20,37 +20,38 @@ The application evaluates stocks against five core criteria:
 
 ---
 
-## Agent Architecture
+## Architecture
 
-The app uses a **Google ADK `SequentialAgent`** pipeline with two LLM-backed sub-agents:
-
-The application follows a classic **pipeline** (sequential) pattern:
+The application uses a **service-oriented** design. The ADK agent pipeline runs as a standalone **FastAPI/Uvicorn HTTP service**; both front-ends (`main.py` CLI and `streamlit_app.py` web UI) are thin HTTP clients that POST a payload and render the response.
 
 ```
-User Input (Ticker Symbol)
-        │
-        ▼
-  ┌──────────────┐
-  │  yfinance    │  ← Fetch live financial data
-  │  data pull   │
-  └─────┬────────┘
-        │  company_info + raw_financials
-        ▼
-  ┌────────────────────────────────────────────┐
-  │  SequentialAgent  (buffett_stock_analysis) │
-  │                                            │
-  │   ┌───────────────┐   ┌─────────────────┐  │
-  │   │ analyst_agent │──▶│ reporter_agent  │  │
-  │   └───────────────┘   └─────────────────┘  │
-  └────────────────────────────────────────────┘
-        │
-        ▼
-  Final Markdown Report
+   CLI (main.py)          Streamlit (streamlit_app.py)
+         │                          │
+         └──────────┬──────────────┘
+                    │  POST /run  { symbol, company_info, raw_financials }
+                    ▼
+        ┌─────────────────────────┐
+        │  FastAPI Agent Service   │   ← uvicorn on :8000
+        │  buffet_bot.agents       │
+        └───────────┬─────────────┘
+                    │
+                    ▼
+        ┌──────────────────────────────────────────┐
+        │  SequentialAgent (buffett_stock_analysis) │
+        │                                           │
+        │  ┌───────────────┐   ┌─────────────────┐ │
+        │  │ analyst_agent │──▶│ reporter_agent   │ │
+        │  └───────────────┘   └─────────────────┘ │
+        └──────────────────────────────────────────┘
+                    │
+                    ▼
+        { "formatted_report": { "analysis_report": "...markdown..." } }
 ```
-- **`analyst_agent`** — Receives company info and raw financials from session state. Performs ROE, D/E, moat, DCF, and margin-of-safety analysis. Writes output to session key `investment_reasoning`.
-- **`reporter_agent`** — Reads all prior state (financials + analysis) and produces a well-formatted Markdown report with metrics table, qualitative analysis, and a final recommendation. Writes to `final_markdown_report`.
 
-Both agents use **Claude 4.6 Sonnet** via ADK's `LiteLlm` wrapper.
+- **`analyst_agent`** — Reads `symbol`, `company_info`, and `raw_financials` from session state. Performs ROE, D/E, moat, DCF, and margin-of-safety checks. Writes output to `investment_reasoning`.
+- **`reporter_agent`** — Reads all prior state (financials + `investment_reasoning`) and produces a formatted Markdown report. Writes to `analysis_report`.
+
+Both agents use **Claude 4.6 Sonnet** via ADK's `LiteLlm` wrapper. The `SequentialAgent` itself requires no model — it is a free, deterministic pipeline coordinator.
 
 ---
 
@@ -58,25 +59,33 @@ Both agents use **Claude 4.6 Sonnet** via ADK's `LiteLlm` wrapper.
 
 ```
 buffet_stock_analyser/
-├── .env                                    # API keys (not committed to git)
-├── main.py                                 # CLI entry point — interactive ticker loop
-├── streamlit_app.py                        # Streamlit GUI entry point
-├── utils.py                                # yfinance data fetcher + ADK Runner helper
-├── logger.py                               # Logging config (Rich console + rotating file)
-├── logs/                                   # Auto-generated log files
+├── .env                              # API keys (not committed to git)
+├── main.py                           # CLI entry point (HTTP client → agent service)
+├── streamlit_app.py                  # Streamlit GUI entry point (HTTP client → agent service)
+├── servers.sh                        # Bash helper script (Linux / macOS / Git Bash)
+├── servers.ps1                       # PowerShell helper script (Windows)
+├── utils.py                          # yfinance data fetcher
+├── logger.py                         # Logging config (Rich console + rotating file)
+├── logs/                             # Auto-generated log files
 │
-└── buffet_bot/                             # ADK agent package
-    ├── __init__.py                         # Package init — imports agent module
-    ├── agent.py                            # Root SequentialAgent (orchestrates sub-agents)
-    └── subagents/
-        ├── analyst_agent/
-        │   ├── __init__.py
-        │   ├── agent.py                    # LlmAgent — Buffett-style financial analysis
-        │   └── prompt.py                   # Analyst prompt template with Buffett criteria
-        └── reporter_agent/
-            ├── __init__.py
-            ├── agent.py                    # LlmAgent — Markdown report generation
-            └── prompt.py                   # Reporter prompt template with report layout
+└── buffet_bot/                       # ADK agent package
+    ├── __init__.py
+    ├── common/
+    │   └── a2a_server.py             # Reusable FastAPI app factory (create_app)
+    └── agents/
+        ├── __init__.py
+        ├── __main__.py               # FastAPI/Uvicorn entry point (serves :8000)
+        ├── agent.py                  # SequentialAgent + execute() coroutine
+        ├── task_manager.py           # Bridges FastAPI route → execute()
+        └── subagents/
+            ├── analyst_agent/
+            │   ├── __init__.py
+            │   ├── agent.py          # LlmAgent — Buffett-style financial analysis
+            │   └── prompt.py         # Analyst prompt template
+            └── reporter_agent/
+                ├── __init__.py
+                ├── agent.py          # LlmAgent — Markdown report generation
+                └── prompt.py         # Reporter prompt template
 ```
 
 ---
@@ -98,8 +107,22 @@ uv venv
 source .venv/bin/activate
 
 # 3. Install dependencies
-uv pip install google-adk litellm yfinance python-dotenv rich streamlit nest-asyncio
+uv pip install -r requirements.txt
 ```
+
+Key dependencies:
+
+| Package | Purpose |
+|---------|---------|
+| `google-adk` | SequentialAgent, LlmAgent, Runner |
+| `litellm` | Unified LLM gateway (Anthropic, OpenAI, Google, …) |
+| `yfinance` | Real-time stock data from Yahoo Finance |
+| `python-dotenv` | Loads `.env` API keys |
+| `rich` | Terminal Markdown rendering & colour |
+| `fastapi` | HTTP framework for the agent service |
+| `uvicorn` | ASGI server running the FastAPI service |
+| `requests` | HTTP client used by `main.py` & `streamlit_app.py` |
+| `streamlit` | Web UI framework |
 
 ### API Keys
 
@@ -107,26 +130,60 @@ Create a `.env` file in the `buffet_stock_analyser/` directory:
 
 ```bash
 ANTHROPIC_API_KEY=sk-ant-...your-key-here...
+# Optional overrides
+HOST_AGENT_URL=http://localhost:8000/run
 ```
-
-The app validates on startup that `ANTHROPIC_API_KEY` is set.
 
 ---
 
 ## Running the Application
 
-### CLI Mode
+> **Important:** Running the app is a two-step process. You must start the agent service first, then run a front-end.
+
+### Step 1 — Start the Agent Service
+
+**Linux / macOS / WSL / Git Bash:**
+
+```bash
+chmod u+x servers.sh   # first time only
+./servers.sh
+```
+
+**Windows PowerShell (native):**
+
+```powershell
+.\servers.ps1
+```
+
+> If PowerShell blocks the script with an execution-policy error, run:
+> ```powershell
+> Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+> ```
+
+**Universal fallback (any OS, any shell):**
+
+```bash
+uvicorn buffet_bot.agents.__main__:app --port 8000
+```
+
+Keep this terminal open. The service listens at `http://localhost:8000/run`. Press **Ctrl+C** to stop.
+
+### Option 1 — CLI Mode
+
+In a second terminal:
 
 ```bash
 uv run main.py
 ```
 
-Enter a ticker symbol (e.g. `TSLA`, `GOOGL`) at the prompt. The agent pipeline will fetch live data, run the analysis, and render the Markdown report in your terminal. Type `exit` to quit.
+Enter a ticker symbol (e.g. `TSLA`, `GOOGL`) at the prompt. `main.py` fetches live data, POSTs it to the agent service, and renders the Markdown report in your terminal via Rich. Type `exit` to quit.
 
-### Streamlit GUI
+### Option 2 — Streamlit GUI
+
+In a second terminal:
 
 ```bash
 streamlit run streamlit_app.py
 ```
 
-Opens a web UI where you enter a ticker, click **"Analyze Stock"**, and view the final report rendered in the browser.
+Opens a web UI where you enter a ticker, click **"Analyze Stock"**, and view the final report rendered in the browser. `streamlit_app.py` mirrors `main.py` exactly — both are simple HTTP clients with no ADK imports.

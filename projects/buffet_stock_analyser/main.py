@@ -2,15 +2,12 @@ import asyncio
 import os
 import uuid
 from dotenv import load_dotenv
-from pathlib import Path
+import requests
 from rich.console import Console
 from rich.markdown import Markdown
 
-from google.adk.sessions import InMemorySessionService
-
 from logger import get_logger
-from buffet_bot.agent import root_agent as workflow
-from utils import get_stock_info, run_agent_query
+from utils import get_stock_info
 
 load_dotenv(override=True)
 assert os.getenv(
@@ -19,14 +16,10 @@ assert os.getenv(
 
 logger = get_logger("buffet_stock_analyser.main")
 
+HOST_AGENT_URL = os.getenv("HOST_AGENT_URL", "http://localhost:8000/run")
 
 async def main():
     console = Console()
-    session_service = InMemorySessionService()
-
-    app_name = Path(__file__).parent.resolve().name
-    user_id = "buffet_analyst_007"
-    session_id = str(uuid.uuid4())
 
     symbol = ""
 
@@ -41,50 +34,20 @@ async def main():
             break
 
         company_info, raw_financials = get_stock_info(symbol)
-        initial_state = {
+        payload = {
             "symbol": symbol,
             "company_info": company_info,
             "raw_financials": raw_financials,
         }
+        logger.info(f"payload -> \n{payload}")
 
-        # check if session with session_id already exists
-        my_session = await session_service.get_session(
-            app_name=app_name,
-            user_id=user_id,
-            session_id=session_id,
-        )
-
-        if my_session is None:
-            # create a new session
-            my_session = await session_service.create_session(
-                app_name=app_name,
-                user_id=user_id,
-                session_id=session_id,
-                state=initial_state,
-            )
-            logger.info(
-                f"\n Created session for first time, with initial_state = {initial_state}\n"
-            )
+        response = requests.post(HOST_AGENT_URL, json=payload)
+        if response.ok:
+            data = response.json()['formatted_report']
+            logger.info(f"Response from agent:\n {data}")
+            console.print(Markdown(data['analysis_report']))
         else:
-            # session exists!
-            # set the state to the new initial_state
-            my_session.state = initial_state
-            logger.info(
-                f"\n Session already exists! Updated state to = {my_session.state}\n"
-            )
-
-        final_markdown_report = await run_agent_query(
-            agent=workflow,
-            session_service=session_service,
-            app_name=app_name,
-            user_id=user_id,
-            user_query=f"Analyse the stock {symbol}",
-            session=my_session,
-        )
-
-        console.print("\n[bold green]Agent Response:[/bold green]")
-        console.print(Markdown(final_markdown_report))
-
+            console.print(f"[red]Failed to fetch analysis for {symbol}. Please try again.[/red]")
 
 if __name__ == "__main__":
     asyncio.run(main())
