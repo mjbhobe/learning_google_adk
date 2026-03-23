@@ -92,22 +92,34 @@ buffet_stock_analyser/
 
 ## Environment Setup
 
-**Prerequisites:** Python ≥ 3.14, [uv](https://docs.astral.sh/uv/)
+**Prerequisites:** 
+1. Python ≥ 3.14, 
+2. [uv](https://docs.astral.sh/uv/) - for managing local Python environment
+
+As a first step, clone this repo to your local disk. For the rest of this section, let's 
+assume you cloned it to `~/code/learning_google_adk` folder on Mac or Linux or the 
+`c:\code\learning_google_adk` on Windows.
 
 ```bash
-# 1. Clone the repo and navigate to the project
-git clone https://github.com/<your-username>/learning_google_adk.git
-cd learning_google_adk/projects/buffet_stock_analyser
+# 1. change to directory where the repo was cloned
+cd ~/code/learning_google_adk  # on Mac or Linux
+or 
+cd c:\code\learning_google_adk  # on Windows
 
-# 2. Create and activate a virtual environment
-uv venv
+# 2. sync the uv managed local environment
+# it will install all the required modules (see key-dependencies table below)
+uv sync
+
+# 3. activate the virtual environment
 # Windows:
 .venv\Scripts\activate
 # macOS / Linux:
 source .venv/bin/activate
 
-# 3. Install dependencies
-uv pip install -r requirements.txt
+# 4. change to this project's sub-folder
+cd ~/code/learning_google_adk/projects/buffet_stock_analyser  # on Mac or Linux
+or 
+cd c:\code\learning_google_adk\projects\buffet_stock_analyser  # on Windows
 ```
 
 Key dependencies:
@@ -124,7 +136,7 @@ Key dependencies:
 | `requests` | HTTP client used by `main.py` & `streamlit_app.py` |
 | `streamlit` | Web UI framework |
 
-### API Keys
+### Create your API Keys
 
 Create a `.env` file in the `buffet_stock_analyser/` directory:
 
@@ -134,6 +146,17 @@ ANTHROPIC_API_KEY=sk-ant-...your-key-here...
 HOST_AGENT_URL=http://localhost:8000/run
 ```
 
+NOTE: we have used Anthropic Claude Sonnet in this example. You can use any LLM supported by Google ADK.
+To change the LLM used, you'll need to modify the the following line in the `subagents/analyst_agent/agent.py` and `subagents/reporter_agent/agent.py` files:
+
+```python
+# LLM used
+llm_model = LiteLlm(model="anthropic/claude-sonnet-4-6")
+# to use OpenAI
+llm_model = LiteLlm(model="openai/gpt-4o")
+# to use Google Gemini
+llm_model = LiteLlm(model="google/gemini-2.5-flash")
+```
 ---
 
 ## Running the Application
@@ -145,6 +168,7 @@ HOST_AGENT_URL=http://localhost:8000/run
 **Linux / macOS / WSL / Git Bash:**
 
 ```bash
+cd ~/code/learning_google_adk/projects/buffet_stock_analyser 
 chmod u+x servers.sh   # first time only
 ./servers.sh
 ```
@@ -152,6 +176,7 @@ chmod u+x servers.sh   # first time only
 **Windows PowerShell (native):**
 
 ```powershell
+cd c:\code\learning_google_adk\projects\buffet_stock_analyser
 .\servers.ps1
 ```
 

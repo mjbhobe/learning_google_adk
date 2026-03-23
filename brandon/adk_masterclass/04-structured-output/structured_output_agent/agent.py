@@ -44,7 +44,7 @@ root_agent = LlmAgent(
         GUIDELINES:
         - Create an appropriate subject line (concise and relevant)
         - Write a well-structured email body with:
-            * Professional greeting
+            * Professional greeting for business, informal for relatives
             * Clear and concise main content
             * Appropriate closing
             * Your name as signature
