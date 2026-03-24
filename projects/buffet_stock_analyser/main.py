@@ -7,7 +7,7 @@ from rich.console import Console
 from rich.markdown import Markdown
 
 from logger import get_logger
-from utils import get_stock_info
+from utils import is_valid_stock_symbol, get_stock_info
 
 load_dotenv(override=True)
 assert os.getenv(
@@ -32,6 +32,10 @@ async def main():
 
         if symbol.lower() == "exit":
             break
+        
+        if not is_valid_stock_symbol(symbol):
+            console.print(f"[red]Invalid stock symbol: {symbol}. Please try again.[/red]")
+            continue
 
         company_info, raw_financials = get_stock_info(symbol)
         payload = {

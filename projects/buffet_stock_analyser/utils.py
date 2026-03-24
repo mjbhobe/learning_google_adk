@@ -1,5 +1,6 @@
 from typing import Any
 import yfinance as yf
+import logging
 
 from google.adk.sessions import InMemorySessionService, Session
 from google.adk.runners import Runner
@@ -7,7 +8,18 @@ from google.genai import types
 
 from logger import get_logger
 
+# Disable yfinance logging
+logger = logging.getLogger('yfinance')
+logger.setLevel(logging.CRITICAL)
+
 logger = get_logger("buffet_stock_analyser.utils")
+
+def is_valid_stock_symbol(symbol: str) -> bool:
+    """given a stock symbol (such as AAPL, RELIANCE.NS), checks if it is valid"""
+    logger.info(f"----- is_valid_symbol() called for {symbol} -----")
+    ticker = yf.Ticker(symbol)
+    data = ticker.history(period="1d")
+    return not data.empty
 
 
 def get_stock_info(symbol: str) -> (dict[str, Any], dict[str, Any]):
