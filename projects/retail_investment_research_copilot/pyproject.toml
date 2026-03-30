@@ -1,0 +1,24 @@
+[project]
+name = "retail-investment-research-copilot"
+version = "0.1.0"
+description = "ADK 2026 retail investment research copilot using Claude Sonnet via LiteLLM"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "google-adk==1.25.1",
+  "litellm>=1.74.0",
+  "anthropic>=0.50.0",
+  "fastapi>=0.115.0",
+  "uvicorn>=0.34.0",
+  "requests>=2.32.0",
+  "streamlit>=1.44.0",
+  "pandas>=2.2.0",
+  "numpy>=2.1.0",
+  "yfinance>=0.2.58",
+  "feedparser>=6.0.11",
+  "python-dotenv>=1.1.0",
+  "pydantic>=2.10.0",
+]
+
+[tool.uv]
+dev-dependencies = []
