@@ -29,8 +29,10 @@ def build_root_agent():
         name="news_sentiment_analyst",
         model=MODEL,
         instruction=(
-            "Analyze the raw news digest in state. "
-            "Identify 3 to 5 positives, negatives, and uncertain items affecting the company."
+            "Analyse the news digest below.\n\n"
+            "{raw_news_digest}\n\n"
+            "Identify 3–5 positives, 3–5 negatives, and up to 3 uncertain/ambiguous items "
+            "that could affect the company's outlook. Use bullet points per category."
         ),
         output_key="news_sentiment",
     )
@@ -39,8 +41,11 @@ def build_root_agent():
         name="news_risk_analyst",
         model=MODEL,
         instruction=(
-            "Review the raw news digest in state and infer potential business, regulatory, or execution risks. "
-            "Stay conservative when evidence is weak."
+            "Review the news digest below.\n\n"
+            "{raw_news_digest}\n\n"
+            "Infer potential business, regulatory, or execution risks. "
+            "Stay conservative — only flag risks with at least weak evidence in the digest. "
+            "Maximum 5 bullet points."
         ),
         output_key="news_risks",
     )
@@ -54,8 +59,12 @@ def build_root_agent():
         name="news_synthesis",
         model=MODEL,
         instruction=(
-            "Combine the raw news digest, sentiment view, and risk view into a concise markdown note "
-            "for a downstream investment memo."
+            "Combine the inputs below into a concise markdown note for a downstream investment memo.\n\n"
+            "## News Digest\n{raw_news_digest}\n\n"
+            "## Sentiment Analysis\n{news_sentiment}\n\n"
+            "## Risk Flags\n{news_risks}\n\n"
+            "Write a summary section (3–4 sentences) followed by labelled Positives, Negatives, "
+            "and Risk subsections. Keep it under 300 words total."
         ),
         output_key="final_news_note",
     )

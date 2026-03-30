@@ -30,9 +30,10 @@ def build_root_agent():
         model=MODEL,
         tools=[render_market_snapshot],
         instruction=(
-            "Use the render_market_snapshot tool to fetch a free market snapshot. "
-            "Then produce a compact markdown section with key fundamentals and technical context. "
-            "Be factual and mention obvious data quality gaps."
+            "Use the render_market_snapshot tool to fetch market data for the ticker in: {normalized_request}\n"
+            "Produce a compact markdown section covering key fundamentals (PE, PB, ROE, D/E, dividend yield, "
+            "revenue/earnings growth) and technical context (price vs SMA50/SMA200, 52-week change, "
+            "daily volatility). Be factual. Note any missing or unreliable data explicitly."
         ),
         output_key="market_snapshot_summary",
     )
@@ -41,8 +42,10 @@ def build_root_agent():
         name="signal_interpreter",
         model=MODEL,
         instruction=(
-            "Interpret the market snapshot already available in state. "
-            "Discuss valuation, trend posture, volatility, and balance-sheet quality in simple language."
+            "Use the market snapshot below to write a plain-language interpretation.\n\n"
+            "{market_snapshot_summary}\n\n"
+            "Cover: valuation posture (cheap/fair/expensive), price trend (bullish/bearish/sideways), "
+            "volatility level, and balance-sheet quality. Maximum 200 words."
         ),
         output_key="market_interpretation",
     )
@@ -56,8 +59,11 @@ def build_root_agent():
         name="market_data_packager",
         model=MODEL,
         instruction=(
-            "Create a market-data summary for the downstream memo service. "
-            "Combine normalized request, market snapshot summary, and market interpretation into one markdown note."
+            "Combine the inputs below into one concise markdown note for the downstream memo service.\n\n"
+            "## Request\n{normalized_request}\n\n"
+            "## Market Snapshot\n{market_snapshot_summary}\n\n"
+            "## Signal Interpretation\n{market_interpretation}\n\n"
+            "Preserve all numbers. Do not add commentary beyond what is already present."
         ),
         output_key="final_market_data_note",
     )
