@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from google.adk.agents import LlmAgent, ParallelAgent, SequentialAgent
+from google.adk.agents import LlmAgent, SequentialAgent
 from google.adk.models.lite_llm import LiteLlm
 from logger import get_logger
 
@@ -50,10 +50,10 @@ def build_root_agent():
         output_key="market_interpretation",
     )
 
-    parallel_research = ParallelAgent(
-        name="parallel_market_research",
-        sub_agents=[snapshot_agent, interpretation_agent],
-    )
+    # parallel_research = ParallelAgent(
+    #     name="parallel_market_research",
+    #     sub_agents=[snapshot_agent, interpretation_agent],
+    # )
 
     final_agent = LlmAgent(
         name="market_data_packager",
@@ -70,5 +70,6 @@ def build_root_agent():
 
     return SequentialAgent(
         name="market_data_pipeline",
-        sub_agents=[intake_agent, parallel_research, final_agent],
+        # sub_agents=[intake_agent, parallel_research, final_agent],
+        sub_agents=[intake_agent, snapshot_agent, interpretation_agent, final_agent],
     )

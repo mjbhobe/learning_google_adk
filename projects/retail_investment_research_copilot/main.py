@@ -1,13 +1,13 @@
+import os
 import requests
 from dotenv import load_dotenv
 from rich.console import Console
 
-MARKET_DATA_URL = "http://127.0.0.1:8101/invoke"
-NEWS_URL = "http://127.0.0.1:8102/invoke"
-MEMO_URL = "http://127.0.0.1:8103/invoke"
-
 load_dotenv(override=True)
 
+MARKET_DATA_URL = os.getenv("MARKET_DATA_SERVICE_URL", "http://127.0.0.1:8101/invoke")
+NEWS_URL = os.getenv("NEWS_SERVICE_URL", "http://127.0.0.1:8102/invoke")
+MEMO_URL = os.getenv("MEMO_SERVICE_URL", "http://127.0.0.1:8103/invoke")
 
 def main() -> None:
     print("Retail Investment Research Copilot")
