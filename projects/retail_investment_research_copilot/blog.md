@@ -6,7 +6,7 @@
 
 > **⚠️ DISCLAIMER — EDUCATIONAL PURPOSES ONLY**
 >
-> **This blog post and the accompanying project are for educational purposes only and must NOT be construed as financial advice or an investment recommendation of any kind. The sole purpose of this article is to demonstrate how multi-agent AI workflows can be constructed using a real-world use case with Google ADK. Past performance is not indicative of future results. If you are considering investing in any financial instrument, please seek advice from a qualified financial professional before making any investment decision. The author bears no responsibility for any financial decisions made based on this content.**
+> **This blog post and the accompanying project are for educational purposes ONLY and MUST NOT be construed as financial advice or an investment recommendation of any kind. The sole purpose of this article is to demonstrate how multi-agent AI workflows can be constructed using a real-world use case with Google ADK. If you are considering investing in any financial instrument, please seek advice from a qualified financial professional before making any investment decision.**
 
 ---
 
@@ -31,7 +31,7 @@ This project uses three of ADK's core orchestration primitives, each chosen deli
 | ADK Primitive | Where Used | Why |
 |---|---|---|
 | `SequentialAgent` | All three services (outer pipeline) | Guarantees deterministic left-to-right execution — intake → research → synthesis |
-| `ParallelAgent` | Inside market-data and news services | Runs independent specialist agents concurrently for speed |
+| `ParallelAgent` | Inside news and memo services | Runs independent specialist agents concurrently for speed |
 | `LoopAgent` | Memo service (refinement stage) | Runs a critic → rewriter loop N times to iteratively improve memo quality |
 
 The key insight is that you stop thinking about "one giant super-agent" and instead design a **workflow**:
@@ -53,7 +53,7 @@ The application is split into three independent **FastAPI/Uvicorn microservices*
                     ▼
        ┌─────────────────────────────┐
        │  Market Data Service :8101  │  ← SequentialAgent
-       │  (yfinance + LLM analysis)  │    [intake → parallel(snapshot,interpret) → packager]
+       │  (yfinance + LLM analysis)  │    [intake → snapshot → interpret → packager]
        └─────────────────────────────┘
                     │ market_data_analysis (markdown note)
                     │  2. POST /invoke  { ticker }
@@ -201,7 +201,7 @@ def render_market_snapshot(ticker: str) -> str:
 
 ### The Agent Pipeline
 
-The market data service wraps a `SequentialAgent` containing a `ParallelAgent` for concurrent analysis:
+The market data service wraps a `SequentialAgent` with four sub-agents that execute strictly in order — each one's output becoming available to the next via `output_key`:
 
 ```python
 def build_root_agent():
@@ -242,11 +242,6 @@ def build_root_agent():
         output_key="market_interpretation",
     )
 
-    parallel_research = ParallelAgent(
-        name="parallel_market_research",
-        sub_agents=[snapshot_agent, interpretation_agent],
-    )
-
     final_agent = LlmAgent(
         name="market_data_packager",
         model=MODEL,
@@ -262,13 +257,13 @@ def build_root_agent():
 
     return SequentialAgent(
         name="market_data_pipeline",
-        sub_agents=[intake_agent, parallel_research, final_agent],
+        sub_agents=[intake_agent, snapshot_agent, interpretation_agent, final_agent],
     )
 ```
 
 **How `output_key` works:** When an `LlmAgent` has an `output_key`, ADK automatically writes its final text response into the shared session state under that key. All downstream agents in the same pipeline can then read that value from state — no explicit message passing, no serialisation plumbing required.
 
-**Why `ParallelAgent` here?** The `snapshot_agent` needs to call the `yfinance` tool (I/O bound), while `interpretation_agent` can begin reasoning about whatever data is already in state. Running them concurrently cuts wall-clock time.
+**Why purely sequential here?** The `interpretation_agent` depends on the raw snapshot data produced by `snapshot_agent` (which must call the `yfinance` tool first), so the steps must execute in strict order: fetch → interpret → package.
 
 ---
 

@@ -4,8 +4,8 @@ A multi-service agentic AI application that gathers live market data and news fo
 
 > **⚠️ Disclaimer:** This project is purely educational — built to demonstrate Google ADK multi-agent workflows. It is **not** financial advice. Please seek advice from a qualified financial professional before making any investment decisions.
 
+> **⚠️ Please NOTE** This project uses Claude Sonnect 4.6. You will need an Anthropic API Key and also need to pre-load some credit balance on the [Claude Console](https://platform.claude.com/settings/billing). It does consume a lot of tokens, especially the analysis bit, so be careful when running the app multiple times.
 ---
-
 ## What It Does
 
 Business users — relationship managers, financial advisors, wealth desk analysts, or serious retail investors — repeatedly perform the same research workflow: pull together fundamentals, interpret price behaviour, scan recent news, and write a defensible memo. This project automates that workflow using a pipeline of specialised ADK agents.
@@ -15,7 +15,6 @@ Given a **stock ticker** (e.g. `MSFT`, `AAPL`, `TCS.NS`, `RELIANCE.NS`) plus an 
 1. Fetches live market data — fundamentals and technicals — from Yahoo Finance,
 2. Fetches and analyses recent news from Google News RSS feeds,
 3. Combines both into a structured investment memo, which is iteratively refined by an automated critic → rewriter loop before being returned.
-
 ---
 
 ## ADK Workflow Design
@@ -138,12 +137,45 @@ source .venv/bin/activate
 .venv\Scripts\Activate.ps1
 # Windows (cmd):
 .venv\Scripts\activate.bat
+```
 
-# 4. Change to this project's sub-folder
+### Configure your API Keys
+Navigate to [Claude Console](https://platform.claude.com/settings/keys) and generate a new API key if you don't have one (or use one you already created).
+
+Copy `.env.example` to `.env` in the `retail_investment_research_copilot/` directory and fill in your key:
+
+```bash
 cd ~/code/learning_google_adk/projects/retail_investment_research_copilot   # macOS / Linux
 # or
 cd c:\code\learning_google_adk\projects\retail_investment_research_copilot  # Windows
+
+# macOS / Linux
+cp .env.example .env
+
+# Windows (PowerShell)
+Copy-Item .env.example .env
 ```
+
+Edit `.env`:
+
+```bash
+# Paste in the key you generated on Claude Console here
+ANTHROPIC_API_KEY=sk-ant-...your-key-here...
+```
+
+> **Note:** This project uses Anthropic Claude Sonnet by default. You can switch to any LLM supported by Google ADK via LiteLlm. To change the model, update the `MODEL` constant at the top of each `agent.py` file:
+>
+> ```python
+> # Default
+> MODEL = LiteLlm(model="anthropic/claude-sonnet-4-6")
+> # Switch to OpenAI
+> MODEL = LiteLlm(model="openai/gpt-4o")
+> # Switch to Google Gemini
+> MODEL = LiteLlm(model="google/gemini-2.5-flash")
+> ```
+
+> **Tip:** You'll need an Anthropic account with API access. Pre-load some credit at [Claude Billing](https://platform.claude.com/settings/billing).
+
 
 ### Key Dependencies
 
@@ -161,37 +193,6 @@ cd c:\code\learning_google_adk\projects\retail_investment_research_copilot  # Wi
 | `pydantic` | Request/response model validation |
 | `rich` | Terminal Markdown rendering and colour output |
 
-### Configure API Keys
-
-Copy `.env.example` to `.env` in the `retail_investment_research_copilot/` directory and fill in your key:
-
-```bash
-# macOS / Linux
-cp .env.example .env
-
-# Windows (PowerShell)
-Copy-Item .env.example .env
-```
-
-Edit `.env`:
-
-```bash
-ANTHROPIC_API_KEY=sk-ant-...your-key-here...
-```
-
-> **Note:** This project uses Anthropic Claude Sonnet by default. You can switch to any LLM supported by Google ADK via LiteLlm. To change the model, update the `MODEL` constant at the top of each `agent.py` file:
->
-> ```python
-> # Default
-> MODEL = LiteLlm(model="anthropic/claude-sonnet-4-6")
-> # Switch to OpenAI
-> MODEL = LiteLlm(model="openai/gpt-4o")
-> # Switch to Google Gemini
-> MODEL = LiteLlm(model="google/gemini-2.5-flash")
-> ```
-
-> **Tip:** You'll need an Anthropic account with API access. Pre-load some credit at [Claude Billing](https://platform.claude.com/settings/billing).
-
 ---
 
 ## Running the Application
@@ -200,9 +201,15 @@ ANTHROPIC_API_KEY=sk-ant-...your-key-here...
 
 ### Step 1 — Start All Three Agent Services
 
-From the project root, run:
+Recommend that this be done from a dedicated terminal (Mac/Linux) or Command Prompt (Windows). Start the terminal/command prompt first.
 
 ```bash
+# in your terminal or command prompt
+cd ~/code/learning_google_adk/projects/retail_investment_research_copilot   # macOS / Linux
+# or
+cd c:\code\learning_google_adk\projects\retail_investment_research_copilot  # Windows
+
+# Start all the services
 python scripts/start_services.py
 ```
 
@@ -236,11 +243,16 @@ Keep this terminal open. Press **Ctrl+C** to stop all services.
 > # {"status":"ok","service":"market_data_service"}
 > ```
 
-### Option 1 — CLI Mode
+### Step 2: Run the executable
+
+#### Option 1 — CLI Mode
 
 In a second terminal (with the virtual environment activated):
 
 ```bash
+# NOTE: activate your local environment BEFORE running this command
+uv run main.py 
+OR
 python main.py
 ```
 
@@ -251,22 +263,43 @@ Enter ticker (example: MSFT or TCS.NS): AAPL
 Investment horizon (example: 3 years): 3 years
 Risk appetite (low/medium/high): medium
 ```
+NOTE: Haven't implemented any input param validation yet (for simplicity) - so please be sure to enter exactly as requested (e.g., investment horizon must have X years)
 
 `main.py` calls the market data and news services in sequence, combines the results with your inputs, and sends the combined payload to the memo service. The final investment memo is rendered in the terminal via `rich`.
 
-### Option 2 — Streamlit Web UI
+#### Option 2 — Streamlit Web UI
 
 In a second terminal:
 
 ```bash
+# run the following
 streamlit run streamlit_app.py
+
+# will display something like this...
+You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8501
+  Network URL: http://192.168.1.13:8501
+
+# open the above displayed URL in a browser window (your URL could be different - use your displayed URL!)
 ```
 
-This opens the web UI at `http://localhost:8501`. Enter the ticker, choose a horizon and risk appetite from the dropdowns, click **Generate memo**, and the rendered Markdown investment memo will appear on the page.
+This opens the web UI at `http://localhost:8501`, and you should see a page like this:
+
+![Streamlit App Startup](images/streamlit_app_start.png)
+
+Enter the ticker, choose a horizon and risk appetite from the dropdowns, click **Generate memo**, and the rendered Markdown investment memo will appear on the page.
+
+The page will display progress as it runs through the various agents - have patience, the process takes some time to complete! After it is done, you should see a page like this:
+
+![Streamlit App End](images/streamlit_app_end.png)
+
+**NOTE:** The above page shows memo for TCS.NS for a 3 year period and medium risk profile.
 
 ---
 
 ## Suggested Demo Tickers
+Some example ticker symbols shown below.
 
 | Ticker | Company |
 |--------|---------|
@@ -278,7 +311,6 @@ This opens the web UI at `http://localhost:8501`. Enter the ticker, choose a hor
 | `RELIANCE.NS` | Reliance Industries Ltd (NSE) |
 
 > **Tip:** For any company, visit [Yahoo! Finance](https://finance.yahoo.com/) and search by company name to confirm the correct ticker symbol, including the exchange suffix (e.g. `.NS` for NSE India, `.BO` for BSE India).
-
 ---
 
 ## Caveats
@@ -286,4 +318,4 @@ This opens the web UI at `http://localhost:8501`. Enter the ticker, choose a hor
 - This is an educational demo, **not** investment advice.
 - Free data from Yahoo Finance and Google News can be delayed, incomplete, or inconsistent. The memo quality is only as good as the underlying data.
 - LLM outputs are non-deterministic — two runs for the same ticker may produce different memos.
-- The `LoopAgent` refinement loop adds latency. Expect a full run to take 45–90 seconds depending on model response times.
+- The `LoopAgent` refinement loop adds latency & consumes tokens. Expect a full run to take 45–90 seconds depending on model response times - be patient.
