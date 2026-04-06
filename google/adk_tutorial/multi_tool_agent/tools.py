@@ -82,6 +82,7 @@ async def get_weather(city: str) -> dict:
 
         return {
             "city": location["name"],
+            "country": location["country"],
             "condition": weather_desc,
             "temperature_c": weather_data["current"]["temperature_2m"],
             "humidity": weather_data["current"]["relative_humidity_2m"],
@@ -129,3 +130,39 @@ async def get_time(city: str) -> str:
             return now_local.strftime("%I:%M %p on %d-%b-%y")
         except Exception as e:
             return f"Error calculating time: {e}"
+
+
+# first let's test this
+async def main():
+    console = Console()
+    cities = [
+        "New York",
+        "London",
+        "Berlin",
+        "Dubai",
+        "Mumbai",
+        "Singapore",
+        "Sydney",
+        "Tokyo",
+        "NonExistentCity",
+    ]
+
+    for city in cities:
+        print(f"\n--- Fetching weather and time for {city} ---")
+        # city: str = "London"
+        data = await get_weather(city)
+        time_str = await get_time(city)
+
+        console.print(
+            f"[indian_red]Weather & time info for {data['city']}, {data['country']} -------[/indian_red]"
+        )
+        console.print(f"  - Temp: {data['temperature_c']}°C")
+        console.print(f"  - Wind: {data['wind_speed']} km/h")
+        console.print(f"  - Humidity: {data['humidity']}")
+        console.print(f"  - Condition: {data['condition']}")
+        console.print(f"Current time: {time_str}")
+        console.print(f"[indian_red]---------------------------------[/indian_red]")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

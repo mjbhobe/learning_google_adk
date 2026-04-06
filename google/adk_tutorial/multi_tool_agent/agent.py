@@ -22,19 +22,3 @@ root_agent = Agent(
     ),
     tools=[get_weather, get_time],
 )
-
-
-# first let's test this
-async def main():
-    city: str = "London"
-    data = await get_weather(city)
-    time_str = await get_time(city)
-
-    print(f"Weather in {data['city']}, {data['country']}:")
-    print(f"- Temp: {data['temperature_c']}°C")
-    print(f"- Wind: {data['wind_speed']} km/h")
-    print(f"Current time in {city}: {time_str}")
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
