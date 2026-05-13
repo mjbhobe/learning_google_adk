@@ -1,4 +1,18 @@
-"""tools.py - definition of tools, such as weather tool"""
+"""
+tools.py - defines custom tools for our ADK Agent
+    - get_weather_global: gets local live weather for most of the
+        major cities across the world (have also included prompt
+        that generates the lat/long co-ordinates)
+    - web_search - used Tavily API for web search.
+        Google ADK does NOT support using google_search with
+        Agents not powered by Gemini models (official reason: google_search
+        fully managed, built-in tool specifically integrated into the Gemini
+        model's native architecture!!)
+
+@Author: Manish Bhobé
+My experiments with AI/Gen AI. Code shared for learning purposes only.
+Use at your own risk!!
+"""
 
 import os
 from dotenv import load_dotenv
@@ -391,7 +405,7 @@ async def web_search(query: str) -> str:
                 )
 
             response = "\n\n---\n\n".join(output)
-            logger.info(f"web_search(query='{query}') -> {response}")
+            logger.debug(f"web_search(query='{query}') -> {response}")
             return response
         except Exception as e:
             logger.fatal(f"web_search(query='{query}') -> tool call failed: {e}")

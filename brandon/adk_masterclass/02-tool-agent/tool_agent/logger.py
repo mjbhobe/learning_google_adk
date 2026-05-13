@@ -1,6 +1,8 @@
 """
-Lightweight logging helper using Python's logging with Rich console output
-and a rotating file handler.
+A lightweight logging helper using Python's logging with the
+Rich console output and a rotating file handler. We get colored
+logging on Consoles to easily distinguish between info/debug/erroe
+levels for example due to the Rich library integration.
 
 Usage:
     from agent_team.logger import get_logger
@@ -8,6 +10,10 @@ Usage:
     logger.info("Hello world")
 
 This module avoids re-adding handlers on repeated imports.
+
+@Author: Manish Bhobé
+My experiments with AI/Gen AI. Code shared for learning purposes only.
+Use at your own risk!!
 """
 
 import logging
@@ -33,7 +39,7 @@ def get_logger(
     Args:
         name: logger name. If None, uses the root logger.
         level: logging level (default INFO).
-        log_file: path to log file (created if missing).
+        # log_file: path to log file (created if missing). -- not used!
         max_bytes: rotation size in bytes.
         backup_count: number of rotated files to keep.
 

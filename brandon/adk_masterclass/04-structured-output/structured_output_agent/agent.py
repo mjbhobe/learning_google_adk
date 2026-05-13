@@ -3,8 +3,9 @@ from pydantic import BaseModel, Field
 
 from google.adk.agents import LlmAgent
 from google.adk.models.lite_llm import LiteLlm
-from google.adk.models import Gemini  # Use the Gemini wrapper
-from google.adk.tools import google_search
+
+# from google.adk.models import Gemini  # Use the Gemini wrapper
+# from google.adk.tools import google_search
 
 from .logger import get_logger
 
@@ -12,17 +13,16 @@ load_dotenv(override=True)
 # Initialize agent-level logger
 logger = get_logger("tool_agent.agent")
 
-gemini_model = Gemini(
-    model="gemini-2.5-flash",
-    use_interactions_api=True,  # <--- This unlocks tool calling for 2.5+
-    bypass_multi_tools_limit=True,  #  <---  unlocks the multi-tool restriction
-    # however, you STILL cannot mix internal tools (such as google_search) with
-    # your own custom tools!
-)
+# gemini_model = Gemini(
+#     model="gemini-2.5-flash",
+#     use_interactions_api=True,  # <--- This unlocks tool calling for 2.5+
+#     bypass_multi_tools_limit=True,  #  <---  unlocks the multi-tool restriction
+#     # however, you STILL cannot mix internal tools (such as google_search) with
+#     # your own custom tools!
+# )
 
 
-# ---- structured o/p definition --------------
-# --- Define Output Schema ---
+# ---- structured output schema definition --------------
 class EmailContent(BaseModel):
     subject: str = Field(
         description="The subject line of the email. Should be concise and descriptive."
@@ -32,11 +32,19 @@ class EmailContent(BaseModel):
     )
 
 
-openai_model = LiteLlm(model="openai/gpt-4o")
+# NOTE: I am attempting to use the cheapest models from
+# each provider. You can change it to whichever model you'd like to use
+
+# for OpenAI LLM use following line
+model = LiteLlm(model="openai/gpt-5-nano")
+# for Google Gemini use this instead (using 3.1 flash lite)
+# model = LiteLlm(model="gemini/gemini-3.1-flash-lite")
+# for Anthropic Claude Haiku use
+# model = LiteLlm(model="anthropic/claude-4-5-haiku")
 
 root_agent = LlmAgent(
     name="structured_output_agent",
-    model=openai_model,
+    model=model,
     instruction="""
         You are an Email Generation Assistant.
         Your task is to generate a professional email based on the user's request.

@@ -1,10 +1,18 @@
 from google.adk.agents.llm_agent import Agent
 from google.adk.models.lite_llm import LiteLlm
 
-openai_model = LiteLlm(model="openai/gpt-5-nano")
+# NOTE: I am attempting to use the cheapest models from
+# each provider. You can change it to whichever model you'd like to use
+
+# for OpenAI LLM use following line
+model = LiteLlm(model="openai/gpt-5-nano")
+# for Google Gemini use this instead (using 3.1 flash lite)
+# model = LiteLlm(model="gemini/gemini-3.1-flash-lite")
+# for Anthropic Claude Haiku use
+# model = LiteLlm(model="anthropic/claude-4-5-haiku")
 
 root_agent = Agent(
-    model=openai_model,
+    model=model,
     name="lingo_flip",
     description="Gen Z lingo generator",
     instruction="""
