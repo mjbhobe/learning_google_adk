@@ -47,8 +47,8 @@ root_agent = Agent(
     instruction="""
     You are a helpful travel guide who can provide weather information.
     Use 'get_live_weather_global' to fetch weather information. For any other queries, use
-    'web_search' tool to find relevant information. 
-    Always provide a helpful response to the user and don't add extra text to your response, 
+    'web_search' tool to find relevant information.
+    Always provide a helpful response to the user and don't add extra text to your response,
     such as suggestions or what else you can do. Just answer the question(s) from user.
     Use a casual and helpful tone in your response.
     """,
@@ -58,47 +58,64 @@ root_agent = Agent(
 )
 
 
-"""
-gemini-2.5-flash give tool calling not supported error. Here is a fix, 
-as suggested by Google Gemini
+# A note regarding using Google tools along with custom tools in an Agent.
 
-from google.adk.models import Gemini # Use the Gemini wrapper
+# 1. Firstly, to use Google tooks, such as google_search (google.adk.tools.google_search)
+#    you MUST use a Gemini model that supports tool use, such as gemini-2.5-flash or above.
+#    The "flash" models are the ones that support tool use (gemini-2.5-flash,
+#    gemini-3.1-flash, etc.)
 
-root_agent = Agent(
-    name="tool_agent",
-    model=Gemini(
-        model="gemini-2.5-flash",
-        use_interactions_api=True  # <--- This unlocks tool calling for 2.5+
-        bypass_multi_tools_limit=True  #  <---  unlocks the multi-tool restriction
-    ),
-    description="Agent that can use tools",
-    instruction=""" """
-    You are a helpful travel guide who can provide weather information.
-    Use 'get_live_weather_global' to fetch weather information. For any other queries, use
-    'google_search' tool to find relevant information. 
-    Always provide a helpful response to the user.
-    """ """,
-    tools=[get_live_weather_global, google_search],
-)
+# 2. ADK does NOT allow you to use additional tools with any google tools (such as google_search).
+#    So if you want to use google_search, you cannot use any other tools in the same agent,
+#    even when you are using Gemini LLMs.
 
-Can the model use both tools together?
-With this setup, if a user asks: "What's the weather in London and can you find me a 
-good Italian restaurant there?", the agent performs Parallel Tool Calling:
+# However, as of Mar 2026, Google introduces the "Interactions API & Tool Context Circulation"
+# in the ADK. This is a very fancy name, but what it allows you to do is to use Google tools
+# (such as google_search) along with custom tools in the same agent. This is a game changer
+# in the ADK.
 
-It triggers get_live_weather_global(location_name="london").
+# To use this feature, you need to set `use_interactions_api=True` and
+# `bypass_multi_tools_limit=True` in the Gemini wrapper when initializing the agent model,
+# as shown below:
 
-Simultaneously, it triggers Google Search(query="best Italian restaurants in London").
+# Here are the changes you'll have to make to the agent above
+# (NOTE the inline comments preceeded by <--- )
 
-It merges both outputs into a single, grounded response.
+# from dotenv import load_dotenv
 
-Important 2026 Constraints
-Billing: When using Google Search in this "mixed mode," you are billed for the model 
-tokens plus a small flat fee per search query executed (if you are on a paid tier).
+# from google.adk.agents import Agent
+# # <---  don't use LiteLLM
+# # from google.adk.models.lite_llm import LiteLlm
+# # <---  use the Gemini wrapper instead
+# from google.adk.models import Gemini
+# from google.adk.tools import google_search
 
-Vertex AI vs AI Studio: If you use an AI Studio API key, ensure your .env has GOOGLE_GENAI_USE_VERTEXAI=FALSE. If you are using Google Cloud Vertex AI, set it to TRUE.
+# from tool_agent.tools import get_live_weather_global  # , web_search  # <---  don't need web_search tool
+# from tool_agent.logger import get_logger
 
-Search Suggestions: The model will return "Search Suggestions" (chips) at the bottom of 
-the response when using Google Search. The ADK handles rendering these if you are using 
-the built-in adk web UI.
+# load_dotenv(override=True)
+# # Initialize agent-level logger
+# logger = get_logger("tool_agent.agent")
 
-"""
+# # NOTE: <---  instantiate your Gemini flash LLM like this
+# gemini_model = Gemini(
+#     model="gemini-3.1-flash-lite",  # or any flash model, such as gemini-2.5-flash
+#     use_interactions_api=True,  # <--- This unlocks tool calling for 2.5+
+#     bypass_multi_tools_limit=True,  #  <---  unlocks the multi-tool restriction
+# )
+
+# root_agent = Agent(
+#     name="tool_agent",
+#     model=gemini_model,  # <--- use the Gemini wrapper instance here,
+#     description="Agent that can use tools",
+#     instruction="""
+#     You are a helpful travel guide who can provide weather information.
+#     Use 'get_live_weather_global' to fetch weather information. For any other queries, use
+#     'web_search' tool to find relevant information.
+#     Always provide a helpful response to the user and don't add extra text to your response,
+#     such as suggestions or what else you can do. Just answer the question(s) from user.
+#     Use a casual and helpful tone in your response.
+#     """,
+#     # NOTE: <--- now you can use multiple tools, including google tools
+#     tools=[get_live_weather_global, google_search],
+# )

@@ -718,7 +718,7 @@ wheels = [
 
 [[package]]
 name = "google-adk"
-version = "1.24.1"
+version = "1.27.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiosqlite" },
@@ -732,6 +732,7 @@ dependencies = [
     { name = "google-cloud-bigquery" },
     { name = "google-cloud-bigquery-storage" },
     { name = "google-cloud-bigtable" },
+    { name = "google-cloud-dataplex" },
     { name = "google-cloud-discoveryengine" },
     { name = "google-cloud-pubsub" },
     { name = "google-cloud-secret-manager" },
@@ -766,9 +767,9 @@ dependencies = [
     { name = "watchdog" },
     { name = "websockets" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/44/d4/067ff47a8e485059cea5f5222a35ae59d739a0db313d6f19fd5b61f1b9df/google_adk-1.24.1.tar.gz", hash = "sha256:f61cdbc2aedaac691d98f66e5c18b133c5d7d8a3f66658dbf0eac2bea99060f3", size = 2209820, upload-time = "2026-02-06T18:55:33.942Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/39/ae/57e0dd56ec7fb7e41e6f9d2b9269c1616418cdda4089989dd876285c4504/google_adk-1.27.3.tar.gz", hash = "sha256:58945d207cc8f87a5ece7610b3b209f14e254d6f45283ee9431e487fe3552db5", size = 2299068, upload-time = "2026-03-23T23:05:35.545Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d6/46/0d07a161882f2890d5bb98b99473d0e31856825185b4cdbade6dee3a4bb7/google_adk-1.24.1-py3-none-any.whl", hash = "sha256:8a05014fa0c95b34dc0995b5fc6511bff651835c82d8549a33c5e8c20e727bc4", size = 2563511, upload-time = "2026-02-06T18:55:31.791Z" },
+    { url = "https://files.pythonhosted.org/packages/50/a5/3e005dd1eaada4cda8f37bc1f81f05a8ad1d7b1510b3d8908a332530450d/google_adk-1.27.3-py3-none-any.whl", hash = "sha256:1ef8f32b1a9cc393a9de2fc8700d961b4c25206a7e8631c1386fa5d8c4f9628b", size = 2690244, upload-time = "2026-03-23T23:05:37.468Z" },
 ]
 
 [package.optional-dependencies]
@@ -776,6 +777,7 @@ extensions = [
     { name = "anthropic" },
     { name = "beautifulsoup4" },
     { name = "docker" },
+    { name = "k8s-agent-sandbox" },
     { name = "kubernetes" },
     { name = "langgraph" },
     { name = "litellm" },
@@ -1017,6 +1019,23 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/a6/03/ef0bc99d0e0faf4fdbe67ac445e18cdaa74824fd93cd069e7bb6548cb52d/google_cloud_core-2.5.0.tar.gz", hash = "sha256:7c1b7ef5c92311717bd05301aa1a91ffbc565673d3b0b4163a52d8413a186963", size = 36027, upload-time = "2025-10-29T23:17:39.513Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/89/20/bfa472e327c8edee00f04beecc80baeddd2ab33ee0e86fd7654da49d45e9/google_cloud_core-2.5.0-py3-none-any.whl", hash = "sha256:67d977b41ae6c7211ee830c7912e41003ea8194bff15ae7d72fd6f51e57acabc", size = 29469, upload-time = "2025-10-29T23:17:38.548Z" },
+]
+
+[[package]]
+name = "google-cloud-dataplex"
+version = "2.19.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "google-api-core", extra = ["grpc"] },
+    { name = "google-auth" },
+    { name = "grpc-google-iam-v1" },
+    { name = "grpcio" },
+    { name = "proto-plus" },
+    { name = "protobuf" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d9/fb/0ff732c12b394b13c13a094f15f25b0a8752c00aad03c29e1d24d2e60ec5/google_cloud_dataplex-2.19.0.tar.gz", hash = "sha256:81a637f2474bd5391ed102311ac6b90d6c066fae1c29837baa8dd36328db0b05", size = 882730, upload-time = "2026-05-07T08:04:07.278Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/74/67/b880c7c96f961ef945f992e45eaeb727a6a54586eb5e0d28f2677958d413/google_cloud_dataplex-2.19.0-py3-none-any.whl", hash = "sha256:356204387ea954710519946dbca224a16f36fb81bd651ccb92ef2bcdbb12422e", size = 676716, upload-time = "2026-05-07T08:02:39.806Z" },
 ]
 
 [[package]]
@@ -1748,6 +1767,21 @@ wheels = [
 ]
 
 [[package]]
+name = "k8s-agent-sandbox"
+version = "0.4.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "kubernetes" },
+    { name = "prometheus-client" },
+    { name = "pydantic" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c0/ec/50857b0551d4ab0733b8a5ef5dcb6bc404e52d7045a3a2da8a409026b2d7/k8s_agent_sandbox-0.4.5.tar.gz", hash = "sha256:d0682a1e72e04ba0469509eb5f29c6c6cec3930d3b11412d682b3724f3e3c9b7", size = 97610, upload-time = "2026-05-06T21:03:32.511Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/85/2e/0d291374460a9b67aa54d7208c82c20ad5b57d665adad211cb6ae9d30b08/k8s_agent_sandbox-0.4.5-py3-none-any.whl", hash = "sha256:84a2a1e69afa50df4640d83caf32e63862643dd8d9ff71b6e32ca252820017bf", size = 64108, upload-time = "2026-05-06T21:03:30.935Z" },
+]
+
+[[package]]
 name = "kubernetes"
 version = "35.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1969,7 +2003,7 @@ requires-dist = [
     { name = "ipykernel", specifier = ">=7.2.0" },
     { name = "langchain-community", specifier = ">=0.4.1" },
     { name = "langchain-openai", specifier = ">=1.1.11" },
-    { name = "litellm", specifier = ">=1.80.16" },
+    { name = "litellm", specifier = ">=1.83.0" },
     { name = "nest-asyncio", specifier = ">=1.6.0" },
     { name = "psutil", specifier = ">=7.2.2" },
     { name = "pydantic", specifier = ">=2.12.5" },
@@ -1986,13 +2020,12 @@ requires-dist = [
 
 [[package]]
 name = "litellm"
-version = "1.80.16"
+version = "1.84.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
     { name = "click" },
     { name = "fastuuid" },
-    { name = "grpcio" },
     { name = "httpx" },
     { name = "importlib-metadata" },
     { name = "jinja2" },
@@ -2003,9 +2036,9 @@ dependencies = [
     { name = "tiktoken" },
     { name = "tokenizers" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ac/cc/03bf7849c62587db0fb7c46f427d6a49290750752d3189a0bd95d4b78587/litellm-1.80.16.tar.gz", hash = "sha256:f96233649f99ab097f7d8a3ff9898680207b9eea7d2e23f438074a3dbcf50cca", size = 13384256, upload-time = "2026-01-13T08:52:23.067Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/dd/e9/8941b7e72a187000561d932c0f2f2ed2b0fd080dfc33ba6e05961d45ca7d/litellm-1.84.0.tar.gz", hash = "sha256:b8ad0cbea11a5941b18d5af973017a340abd3d3ab41cb86e5401b970626d71a6", size = 15103206, upload-time = "2026-05-14T05:45:53.017Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/53/4d/73fdb12223bdb01889134eb75525fcc768b1724255f2b87072dd6743c6e1/litellm-1.80.16-py3-none-any.whl", hash = "sha256:21be641b350561b293b831addb25249676b72ebff973a5a1d73b5d7cf35bcd1d", size = 11682530, upload-time = "2026-01-13T08:52:19.951Z" },
+    { url = "https://files.pythonhosted.org/packages/01/a6/77fa1bbf5e42eb596b06318b3f7e6af5d0f44028046d1d598c6a595d028f/litellm-1.84.0-py3-none-any.whl", hash = "sha256:2a58d6041e6aa27d1a28dc8d8828ab500fef1a00ef74ca65e60899035010c2f2", size = 16735062, upload-time = "2026-05-14T05:45:49.927Z" },
 ]
 
 [[package]]
@@ -2753,6 +2786,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/cf/86/0248f086a84f01b37aaec0fa567b397df1a119f73c16f6c7a9aac73ea309/platformdirs-4.5.1.tar.gz", hash = "sha256:61d5cdcc6065745cdd94f0f878977f8de9437be93de97c1c12f853c9c0cdcbda", size = 21715, upload-time = "2025-12-05T13:52:58.638Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/cb/28/3bfe2fa5a7b9c46fe7e13c97bda14c895fb10fa2ebf1d0abb90e0cea7ee1/platformdirs-4.5.1-py3-none-any.whl", hash = "sha256:d03afa3963c806a9bed9d5125c8f4cb2fdaf74a55ab60e5d59b3fde758104d31", size = 18731, upload-time = "2025-12-05T13:52:56.823Z" },
+]
+
+[[package]]
+name = "prometheus-client"
+version = "0.25.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/1b/fb/d9aa83ffe43ce1f19e557c0971d04b90561b0cfd50762aafb01968285553/prometheus_client-0.25.0.tar.gz", hash = "sha256:5e373b75c31afb3c86f1a52fa1ad470c9aace18082d39ec0d2f918d11cc9ba28", size = 86035, upload-time = "2026-04-09T19:53:42.359Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8d/9b/d4b1e644385499c8346fa9b622a3f030dce14cd6ef8a1871c221a17a67e7/prometheus_client-0.25.0-py3-none-any.whl", hash = "sha256:d5aec89e349a6ec230805d0df882f3807f74fd6c1a2fa86864e3c2279059fed1", size = 64154, upload-time = "2026-04-09T19:53:41.324Z" },
 ]
 
 [[package]]
@@ -3610,7 +3652,7 @@ wheels = [
 
 [[package]]
 name = "toolbox-adk"
-version = "0.5.8"
+version = "0.7.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "google-adk" },
@@ -3619,14 +3661,14 @@ dependencies = [
     { name = "toolbox-core" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/66/90/cace00e08f1122db624bc7642834c3f0632bedba59871d2a8ad64d470840/toolbox_adk-0.5.8.tar.gz", hash = "sha256:a450956f145619762d51be5b510459dbf8a885dde7a506d7cb96e88aa82e963f", size = 14864, upload-time = "2026-01-29T08:59:38.023Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ee/b5/9eea444b703cad3472140c78eff8a30d066ec479a0ac0172479707f0a462/toolbox_adk-0.7.0.tar.gz", hash = "sha256:f8b5d2780bd7e93d5b46ea98f14c6629a24473c95290de609d517b3ae0222e3c", size = 15516, upload-time = "2026-03-05T17:13:19.624Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c6/ba/448053111cf8af12761781245a8f25d9d0a69b86597435e9cbfe71abea7e/toolbox_adk-0.5.8-py3-none-any.whl", hash = "sha256:df13b55351f0657ecb219f1f05a3718d808a08b734f28cf626b574290c0a1ca8", size = 14648, upload-time = "2026-01-29T08:59:36.868Z" },
+    { url = "https://files.pythonhosted.org/packages/0d/7b/33cdd92576972a1bf34cbc334776daa78af384bc6d3a9fe79324aafc1aaa/toolbox_adk-0.7.0-py3-none-any.whl", hash = "sha256:a9ac79ef258a06039bbb704c8d265f0b5e3c5c212a0a24a6641ba1e2887aec8b", size = 15591, upload-time = "2026-03-05T17:13:17.909Z" },
 ]
 
 [[package]]
 name = "toolbox-core"
-version = "0.5.8"
+version = "0.5.10"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -3635,9 +3677,9 @@ dependencies = [
     { name = "pydantic" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/93/ca/4a727ba9708f5dfc8f12b118c8279f49de201462a5757a2a104302eac751/toolbox_core-0.5.8.tar.gz", hash = "sha256:8759986f3657d29f0e7af5762cb5610994ef437bd270e8657fd3ec90d4953389", size = 60943, upload-time = "2026-01-28T11:54:55.037Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/0f/f9/1f9413d50b805efd2313fc3f1e7aefb19b27d12a676f12705a8b1df06e9a/toolbox_core-0.5.10.tar.gz", hash = "sha256:fc3f76187ed39e86074cd09140e631a94874ad6a8b5e895b5b50570c4795a3db", size = 63376, upload-time = "2026-02-26T19:14:47.999Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/cf/e3/b4b30658274ed91e7e131946d09dbbf124a58bd9f464c19281c451d6b611/toolbox_core-0.5.8-py3-none-any.whl", hash = "sha256:17cb927208468c58072d9938d54c4378087eca6b781a729845ef9d8fae382f1f", size = 50347, upload-time = "2026-01-28T11:54:53.14Z" },
+    { url = "https://files.pythonhosted.org/packages/5f/fc/92236148518b654d5415678e8cfd3b489258254c1abf80dd1be6a23cd057/toolbox_core-0.5.10-py3-none-any.whl", hash = "sha256:34d9f3685e585aa8e5d29f78763c5436a3cc27516f8bf184df48260e02649c6a", size = 51374, upload-time = "2026-02-26T19:14:46.402Z" },
 ]
 
 [[package]]

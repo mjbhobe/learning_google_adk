@@ -13,7 +13,6 @@ from google.genai import types
 from manu_bot.agent import root_agent
 from manu_bot.logger import get_logger
 
-
 load_dotenv(override=True)
 logger = get_logger("sessions_and_memory.main")
 
@@ -29,7 +28,8 @@ async def main():
     session_id = str(uuid.uuid4())
 
     # let's create a session with some initial_state, which the agent
-    # will use for answering questions about me
+    # will use for answering questions about me - the initial_state should
+    # be a standard Python dict (key-value pairs)
     initial_state = {
         "user_name": "Manish Bhobe",
         "user_preferences": """
@@ -73,7 +73,7 @@ async def main():
             break
         else:
             # Process the query using the ADK runner
-            logger.info(f"Processing user query: [yellow]{query}[/yellow]")
+            logger.info(f"Processing user query: {query}")
 
             # 3. Format the input for the ADK Runner
             user_content = types.Content(
