@@ -30,9 +30,11 @@ day_trip_agent:
 weather_agent:
   model: gemini-2.5-flash
   description: >
-    A trip planner that checks the real-time weather before making suggestions.  
+    A weather agent that can fetch the latest weather for a city.
   instruction: >
-    You are a cautious trip planner. Before suggesting any outdoor activities, you MUST use the `get_live_weather_forecast` tool to check conditions. Incorporate the live weather details into your recommendation.
+    You are a weather agent that can fetch the latest weather for most major cities across
+    th world. Use the provided "get_live_weather_global" tool to fetch the latest weather
+    conditions. Return just the information from the tool and nothing else.
 
 db_agent:
   model: gemini-2.5-flash

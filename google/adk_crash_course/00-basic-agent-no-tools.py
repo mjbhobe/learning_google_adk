@@ -6,13 +6,15 @@ respond to user's queries. It will NOT be able to fetch the latest info from the
 as it does not have any tools support yet! Also no session memory, so each query is
 distinct and LLM has no link to previous questions or responses.
 
-NOTE: code shared for learning purposes only! Use at your own risk.
+@Author: Manish Bhobé
+My experiments with AI/Gen AI. Code shared for learning purposes only.
+Use at your own risk!!
 """
 
 import os
 import asyncio
 import argparse
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.prompt import Prompt
@@ -22,9 +24,10 @@ from google.adk.agents import LlmAgent
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.sessions import InMemorySessionService
 
+# pyrefly: ignore [missing-import]
 from utils import load_agent_config, run_agent_query
 
-load_dotenv(override=True)
+load_dotenv(find_dotenv(), override=True)
 
 agent_config = load_agent_config("basic_agent")
 
@@ -39,7 +42,7 @@ greeting_agent = Agent(
 
 # NOTE: ensure you have an entry for OPENAI_API_KEY in your .env file!
 # also add google-adk[extensions] to your local Python environment
-openai_model = LiteLlm(model="openai/gpt-4o")
+openai_model = LiteLlm(model="openai/gpt-5-nano")
 
 openai_greeting_agent = LlmAgent(
     name="openai_greeting_agent",

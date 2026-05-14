@@ -110,7 +110,7 @@ async def run_agent_query(
         app_name=agent.name, user_id=user_id
     )
 
-    console.print(f"[blue]🗣️ User Query: '{query}'[/blue]")
+    # console.print(f"[blue]🗣️ User Query: '{query}'[/blue]")
 
     """Initializes a runner and executes a query for a given agent and session."""
     console.print(

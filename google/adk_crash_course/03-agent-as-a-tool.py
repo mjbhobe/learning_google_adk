@@ -126,7 +126,7 @@ orchestration_agent_config = load_agent_config("orchestration_agent")
 from google.adk.agents import LlmAgent
 from google.adk.models.lite_llm import LiteLlm
 
-openai_model = LiteLlm(model="openai/gpt-4o")
+openai_model = LiteLlm(model="openai/gpt-5-nano")
 
 # db_agent - an agent that fetches mock hotels data (generated
 # using above prompt to Gemini & hard-coded in prompt!)

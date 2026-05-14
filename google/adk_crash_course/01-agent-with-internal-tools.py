@@ -10,11 +10,11 @@ itineraries based on mood, interests, and budget. It utilizes INTERNAL Google Se
 tool to gather information about local attractions, restaurants, and activities to
 create a personalized itinerary.
 
-NOTE: code shared for learning purposes only! Use at your own risk.
+@Author: Manish Bhobé
+My experiments with AI/Gen AI. Code shared for learning purposes only.
+Use at your own risk!!
 """
 
-import os
-import re
 import asyncio
 import argparse
 from rich.console import Console

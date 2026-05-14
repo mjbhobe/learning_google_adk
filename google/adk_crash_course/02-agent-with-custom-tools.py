@@ -9,7 +9,9 @@ Components:
 * Session: The conversation history. For this simple agent, it's just a container for a single request-response.
 * Runner: The engine that connects the Agent and the Session to process your request and get a response.
 
-NOTE: code shared for learning purposes only! Use at your own risk.
+@Author: Manish Bhobé
+My experiments with AI/Gen AI. Code shared for learning purposes only.
+Use at your own risk!!
 """
 
 import os
@@ -22,7 +24,8 @@ from rich.markdown import Markdown
 from rich.prompt import Prompt
 
 from google.adk.agents import Agent
-from google.adk.tools import google_search
+from google.adk.agents import LlmAgent
+from google.adk.models.lite_llm import LiteLlm
 from google.adk.sessions import InMemorySessionService, Session
 
 from utils import load_agent_config, run_agent_query
@@ -484,7 +487,8 @@ def get_live_weather_global(location_name: str) -> dict:
 # Step 1 -> Create an agent
 weather_agent = Agent(
     name="weather_agent",
-    model=agent_config["model"],
+    # model=agent_config["model"],
+    model=LiteLlm(model="openai/gpt-5-nano"),
     description=agent_config["description"],
     instruction=agent_config["instruction"],
     tools=[get_live_weather_global],
@@ -499,7 +503,7 @@ async def main():
     query = ""
     while True:
         query = Prompt.ask(
-            "[bright_yellow]Query (or type 'exit' or press Enter to quit): [/bright_yellow]",
+            "[bright_yellow]Enter city name for latest weather (or type 'exit' or press Enter to quit): [/bright_yellow]",
             default="exit",
         )
         # query = input()
@@ -518,7 +522,7 @@ async def main():
 
         console.print("[green]\n" + "-" * 50 + "\n[/green]")
         console.print("[green]🌤️ Live Weather:[/green]")
-        console.print(Markdown(final_response))
+        console.print(final_response)
         console.print("[green]\n" + "-" * 50 + "\n[/green]")
 
 
