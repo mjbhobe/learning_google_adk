@@ -94,11 +94,13 @@ source ../.venv/bin/activate
 GOOGLE_API_KEY=your_api_key_here
 ```
 
-### Running the Example
+### Running the Example (NOTE: `$>` is command prompt)
 
 ```bash
-cd 9-sequential-agent
-adk web OR adk run lead_qualification_agent
+$> cd 9-sequential-agent
+$> adk web lead_qualification_agent 
+OR 
+$> adk run lead_qualification_agent
 ```
 
 If using `adk web`, select "lead_qualification_agent" from the dropdown menu in the web UI.
@@ -143,4 +145,3 @@ ADK offers different types of workflow agents for different needs:
 ## Additional Resources
 
 - [ADK Sequential Agents Documentation](https://google.github.io/adk-docs/agents/workflow-agents/sequential-agents/)
-- [Full Code Development Pipeline Example](https://google.github.io/adk-docs/agents/workflow-agents/sequential-agents/#full-example-code-development-pipeline)
