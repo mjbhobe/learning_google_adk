@@ -12,9 +12,9 @@ import logging
 from google.adk.agents import SequentialAgent
 
 # --- subagents ---
-from subagents.code_writer_agent.agent import code_writer_agent
-from subagents.code_reviewer_agent.agent import code_reviewer_agent
-from subagents.code_refactorer_agent.agent import code_refactorer_agent
+from .subagents.code_writer_agent.agent import code_writer_agent
+from .subagents.code_reviewer_agent.agent import code_reviewer_agent
+from .subagents.code_refactorer_agent.agent import code_refactorer_agent
 
 # 1. Silence Pydantic's internal validation warnings
 logging.getLogger("pydantic").setLevel(logging.ERROR)

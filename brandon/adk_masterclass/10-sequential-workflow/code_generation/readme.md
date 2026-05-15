@@ -1,6 +1,12 @@
-# Sequential Agents in ADK
+﻿# Sequential Agents in ADK
 
-This example demonstrates how to implement a Sequential Agent in the Agent Development Kit (ADK). The main agent in this example, `code_pipeline_agent`, is a Sequential Agent that executes sub-agents in a predefined order, with each agent's output feeding into the next agent in the sequence.
+This example demonstrates how to implement a Sequential Agent in the Google Agent Development Kit (ADK). Here we will show an example of how a team of 3 agents can generate Python code per your requirements. For example, the user enters a prompt like:
+
+> Write my Python code that converts Celsius temperature to Fahrenheit
+
+And the agent team generates the code for you.
+
+The main agent in this example, `code_pipeline_agent`, is a Sequential Agent that executes sub-agents in a predefined order, with each agent's output feeding into the next agent in the sequence.
 
 ## What are Sequential Agents?
 
@@ -17,15 +23,12 @@ Use Sequential Agents when you need a deterministic, step-by-step workflow where
 In this example, we've created `code_pipeline_agent` as a Sequential Agent that implements a code generation pipeline. This Sequential Agent orchestrates three specialized sub-agents:
 
 1. **Code Writer Agent**: Generates Python code based on the user's requirements
-
    - Writes clean, PEP 8-compliant code with Google-style docstrings
    - Outputs a complete Python code block
 2. **Code Reviewer Agent**: Reviews the generated code and provides feedback
-
    - Evaluates correctness, readability, efficiency, edge cases, and best practices
    - Outputs a concise, bulleted list of review comments (or "No major issues found.")
 3. **Code Refactorer Agent**: Applies the review feedback to improve the code
-
    - Refactors the original code based on the reviewer's comments
    - If no issues were found, returns the original code unchanged
    - Outputs the final, polished Python code block
@@ -68,6 +71,7 @@ The output of each sub-agent is stored in the session state using the `output_ke
 │   │           └── agent.py
 │   │
 │   ├── .env.example                    # Environment variables example
+│   ├── main.py                         # CLI driver program (run with uv run main.py)
 │   ├── sample_requirements.md          # Sample prompts to test the pipeline
 │   └── readme.md                       # This documentation
 ```
@@ -97,7 +101,11 @@ OPENAI_API_KEY=your_api_key_here
 ANTHROPIC_API_KEY=your_api_key_here
 ```
 
-### Running the Example (NOTE: `$>` is command prompt)
+### Running the Example 
+
+The same commands will work in a Linux/Mac shell or a Windows Powershell or CMD shell.
+
+(**NOTE:** `$>` denotes command prompt -- don't type this!)
 
 ```bash
 $> cd 10-sequential-workflow/code_generation
@@ -108,6 +116,15 @@ $> adk run code_pipeline_agent
 
 If using `adk web`, select "code_pipeline_agent" from the dropdown menu in the web UI.
 
+Alternatively, you can run the example using the CLI interface with uv:
+
+```bash
+$> cd 10-sequential-workflow/code_generation
+$> uv run main.py
+```
+
+The CLI interface prompts you interactively for code generation requirements. Type `exit` at the prompt to quit.
+
 ## Example Interactions
 
 Try these example interactions from `sample_requirements.md`:
@@ -116,24 +133,19 @@ Try these example interactions from `sample_requirements.md`:
 
 ```
 Write a Python module that converts between Celsius, Fahrenheit, and Kelvin.
-Include functions for all 6 conversion directions and a CLI that accepts a value
-and unit.
+Include functions for all 6 conversion directions and a CLI that accepts a value and unit.
 ```
 
 ### Medium Complexity Example:
 
 ```
-Implement a password strength checker that scores a password (0–100) based on
-length, character variety, common patterns, and dictionary words. Return a score
-plus actionable feedback messages.
+Implement a password strength checker that scores a password (0–100) based on length, character variety, common patterns, and dictionary words. Return a score plus actionable feedback messages.
 ```
 
 ### Complex Problem Example:
 
 ```
-Implement an LRU (Least Recently Used) cache in Python that also supports
-TTL (time-to-live) expiry per key. It should be thread-safe and have O(1)
-get/put operations.
+Implement an LRU (Least Recently Used) cache in Python that also supports TTL (time-to-live) expiry per key. It should be thread-safe and have O(1) get/put operations.
 ```
 
 ## How Sequential Agents Compare to Other Workflow Agents
