@@ -91,6 +91,9 @@ Send the agent any plain English sentence and watch it get a Gen Z makeover:
 - "That outfit you're wearing looks incredible."
 - "We should stop overthinking and just do it."
 
+## Project for you
+If you loved this example, try doing the reverse - translate Gen-Z lingo to plain English, especially if you are a Gen-Zer and notice your parents going blank when you speak to them 😉.
+
 ## Additional Resources
 
 - [ADK LlmAgent Documentation](https://google.github.io/adk-docs/agents/llm-agents/)
