@@ -1,10 +1,14 @@
 # Using MCP with Google ADK
 
 ### What is MCP?
-MCP is a standard way for agents to connect to external tools and data. More simply put, MCP is a server that is a standardized way for you to access common real-world AI tools that you want to pass to your agents. Think of an MCP server as an intermediary between your agent on the one side nd a whole list of tools on the other. The MCP server **standardizes the way** you can: 
+MCP is a standard way for agents to connect to external tools and data. More simply put, MCP is a server that is a standardized way for you to access common real-world AI tools that you want to pass to your agents. Think of an MCP server as an intermediary between your agent on the one side and a whole list of tools on the other. The MCP server **standardizes the way** (key message) you can: 
 - Get a list of all the available tools
 - Describe a tool (what the tool does, what arguments it expects and what it returns) 
 - Call a specific tool
+
+<div align="center">
+<img src="images/mcp_intro.jpg" width="350" heigh="450" alt="MCP Introduction"/>
+</div>
 
 To understand this better, let's understand the _traditional_ way of an agent calling a tool:
 
@@ -14,7 +18,7 @@ The following diagram shows the tradional way an ADK Agent calls a Notion Tool (
 <img src="images/std_way_to_call_tools.png" width="500" heigh="350" alt="Standard Way to call a tool"/>
 </div>
 
-In this case it would be upto _you_, the developer, to wrap every single Notion API you'd use (such as querying the database) into a tool that the ADK Agent can use. Something like the code below [NOTE: this is not an actual Notion call, just an illustration!]
+In this case it would be upto _you_, the developer, to wrap every single Notion API you'd use (such as querying the database, creating a document, querying a document etc.) into a tool that the ADK Agent can use. Something like the code below [NOTE: this is not an actual Notion call, just an illustration!]
 
 ```python
 from google.adk.agents import Agent
@@ -24,14 +28,20 @@ def query_notion_database(database_id: str, query: str):
     # Actual Notion API call would go here
     .... # your code to call the Notion API
 
+def create_notion_document(...):
+    """create a new document in notion db"""
+    # Actual Notion API call would go here
+    .... # your code to call the Notion API
+
 root_agent = Agent(
     name="notion_agent",
     model="gemini-2.5-flash",
-    tools=[query_notion_database],
+    tools=[query_notion_database, create_new_document, ...],
     description="You are an AI assistant that can answer questions about your Notion database.",
     ....
 )
 ```
+
 This is a super-simple technique, and is the way we have been using tools with ADK in our previous examples and projects.
 
 ### Problems with traditional techniques
