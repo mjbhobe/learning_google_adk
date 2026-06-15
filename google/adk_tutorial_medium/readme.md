@@ -2,7 +2,9 @@
 (Refer [Medium Tutorial Series](https://medium.com/@simranjeetsingh1497/google-adk-in-2026-the-complete-beginners-guide-to-building-ai-agents-part-1-2aca04ddf6ff))
 As developers, we have been developing applications that respond to events, such as clicking a button on a GUI. That era is ending, giving way to the **are of agents** - software that thinks, plans and acts. Consider the following scenario:
 
-`Your flight is delayed by 2 hours and you are likely to miss your 9am meeting in another city`. Here's what you'll do:
+`Your flight is delayed by 2 hours and you are likely to miss your 9am meeting in another city`. 
+
+Here's what you'll do:
 * Open your calendar and look for the 9AM meeting
 * Inform all attendees that you are delayed, and possibly re-schedule the meeting
 * Re-schedule your Uber pickup for the airport
