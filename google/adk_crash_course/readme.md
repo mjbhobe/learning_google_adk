@@ -56,9 +56,9 @@ This will automatically create the environment for you and install all packages!
 
 # follow steps below in a command/bash shell
 
-cd ~/adk_project
+cd ~/adk_crash_course
 # on Mac of Linux
-source ~/adk_project/.venv/bin/activate
+source ~/adk_crash_course/.venv/bin/activate
 # OR (on Windows)
 # .venv\Scripts\activate
 uv run 00-basic-agent.py
@@ -70,6 +70,7 @@ Following is the step-by-step roadmap we'll follow to build our competency with 
 ![Google ADK Roadmap](./images/adk_tutorial_roadmap.png)
 
 Here's what we'll learn:
+
 * **A basic agent** ([basic_agent_no_tools](basic_agent_no_tools/readme.md)): a basic agent that responds to user's questions based on pre-trained data only. It does not use any tools.
 * **An agent using Google supplied tools** ([01-agent-with-internal-tools.py](01-01-agent-with-internal-tools.py)): an agent that plans a 1 day itinarary based on user prompt, which uses Google search tool (supplied with ADK) to get external information.
 * **An agent with custom tools** ([02-agent-with-custom-tools.py](02-agent-with-custom-tools.py)): an agent that uses custom tools (i.e. a Python function we code as a tool).

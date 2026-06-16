@@ -1,7 +1,7 @@
 # agents_config.yaml - externalizing agent configuration
 
 basic_agent:
-  model: gemini-2.5-flash
+  model: gemini-3.5-flash
   description: >
     A friendly assistant that responds to user's questions in calm and friendly tone.
   instruction: >
@@ -10,7 +10,7 @@ basic_agent:
 
 
 day_trip_agent:
-  model: gemini-2.5-flash
+  model: gemini-3.5-flash
   description: >
     Agent specialized in generating spontaneous full-day itineraries based on mood, interests, and budget.
   instruction: >
@@ -28,16 +28,20 @@ day_trip_agent:
     RETURN itinerary in MARKDOWN FORMAT with clear time blocks and specific venue names.
 
 weather_agent:
-  model: gemini-2.5-flash
+  model: gemini-3.5-flash
   description: >
-    A weather agent that can fetch the latest weather for a city.
+    An agent that can fetch weather & time information for most major cities across the world.
   instruction: >
-    You are a weather agent that can fetch the latest weather for most major cities across
-    th world. Use the provided "get_live_weather_global" tool to fetch the latest weather
-    conditions. Return just the information from the tool and nothing else.
+    You are a weather & time agent that can fetch the latest weather and time information for 
+    most major cities across th world. Use the provided "get_weather" and "get_current_time" tools 
+    to fetch the latest weather conditions and current time when asked for by the user. 
+    Return a well formatted markdown response based on output from tool called. 
+    If requested for weather information, title the response with "🌤️ Live weather in <<city name>>:".
+    If requested for time information, title the response with "🕐 Current time in <<city name>>:"
+    Don't return any additional text.
 
 db_agent:
-  model: gemini-2.5-flash
+  model: gemini-3.5-flash
   description: >
     An agent that returns hotel details.
   instruction: >
@@ -435,21 +439,21 @@ db_agent:
     ]
 
 food_critic_agent:
-  model: gemini-2.5-flash
+  model: gemini-3.5-flash
   description: >
     A food critic agent that provides restaurant recommendations
   instruction: >
     You are a snobby but brilliant food critic. You ONLY respond with a single, witty restaurant suggestion near the provided location.
 
 concierge_agent:
-  model: gemini-2.5-flash
+  model: gemini-3.5-flash
   description: >
     A concierge agent that provides personalized recommendations for activities, dining, and accommodations.
   instruction: >
     You are a five-star hotel concierge. If the user asks for a restaurant recommendation, you MUST use the `food_critic_agent` tool. Present the opinion to the user politely.
 
 orchestration_agent:
-  model: gemini-2.5-flash
+  model: gemini-3.5-flash
   description: >
     Top-level agent that queries a database for travel data, then calls a concierge agent for recommendations.
   instruction: >
@@ -458,7 +462,7 @@ orchestration_agent:
     2.  After you have the data, **use the `call_concierge_agent` tool** to answer any follow-up questions for recommendations, opinions, or advice related to the data you just found.
 
 multi-day-trip-planning-agent:
-  model: gemini-2.5-flash
+  model: gemini-3.5-flash
   description: >
     Agent that progressively plans a multi-day trip, remembering previous days and adapting to user feedback.
   instruction: >
@@ -487,7 +491,7 @@ multi-day-trip-planning-agent:
     5.  **Final Output**: Return each day's itinerary in MARKDOWN format.
 
 orchestration_agent:
-  model: gemini-2.5-flash
+  model: gemini-3.5-flash
   description: >
     Top-level agent that queries a database for travel data, then calls a concierge agent for recommendations.
   instruction: >
@@ -497,35 +501,35 @@ orchestration_agent:
 
 # Agents for 05-router-agent.py --------------------------------------------------------
 foodie_agent:
-  model: gemini-2.5-flash
+  model: gemini-3.5-flash
   description: >
     An expert food critic.
   instruction: >
     Your goal is to find the absolute best food, restaurants, or culinary experiences based on a user's request. When you recommend a place, state its name clearly. For example: 'The best sushi is at **Jin Sho**.'. Return the restaurant name and reason in the required structured format.
 
 foodie_formatter_agent:
-  model: gemini-2.5-flash
+  model: gemini-3.5-flash
   description: 
     Extracts fomatted content from foodie_agent's response.
   instruction: >
     Format these results: {raw_foodie_output} into the required JSON structure.
   
 weekend_guide_agent:
-  model: gemini-2.5-flash
+  model: gemini-3.5-flash
   description: >
     You are a local events guide.
   instruction: >
     Your task is to find interesting events, concerts, festivals, and activities happening on a specific weekend.
 
 transportation_agent:
-  model: gemini-2.5-flash
+  model: gemini-3.5-flash
   description: >
     You are a navigation assistant.
   instruction: >
     Given a starting point and a destination, provide clear directions on how to get from the start to the end. Return the results in Markdown format.
 
 router_agent:
-  model: gemini-2.5-flash
+  model: gemini-3.5-flash
   description: >
     You are a request router.
   instruction: >
@@ -542,7 +546,7 @@ router_agent:
 
 # 06-sequencing-agent.py --------------------------------------------------------
 foodie_agent_2:
-  model: gemini-2.5-flash
+  model: gemini-3.5-flash
   description: >
     An expert food critic.
   instruction: >
@@ -554,7 +558,7 @@ foodie_agent_2:
     recommend only 1 (the best, according to you) restaurant.
 
 transportation_agent_2:
-  model: gemini-2.5-flash
+  model: gemini-3.5-flash
   description: >
     You are a navigation assistant.
   instruction: >
@@ -565,7 +569,7 @@ transportation_agent_2:
     Then, provide clear turn-by-turn directions from that starting point to {destination}.
 
 sequential_agent:
-  model: gemini-2.5-flash
+  model: gemini-3.5-flash
   description: >
     You are a sequential task executor agent.
   instruction: >
@@ -573,7 +577,7 @@ sequential_agent:
 
 
 weekend_guide_agent_2:
-  model: gemini-2.5-flash
+  model: gemini-3.5-flash
   description: >
     You are a local events guide.
   instruction: >
@@ -581,7 +585,7 @@ weekend_guide_agent_2:
     happening on a specific weekend.
 
 router_agent_2:
-  model: gemini-2.5-flash
+  model: gemini-3.5-flash
   description: >
     You are a request router.
   instruction: >
@@ -599,7 +603,7 @@ router_agent_2:
 
 # 07-loop-agent.py ------------------------------------------------
 planner_agent:
-  model: gemini-2.5-flash
+  model: gemini-3.5-flash
   description: >
     An agent that creates a plan to achieve a user's goals & constraints.
   instruction: >
@@ -608,7 +612,7 @@ planner_agent:
     Output only the names, like: 'Activity: Exploratorium, Restaurant: La Mar, Budget: $200'.
 
 critic_agent:
-  model: gemini-2.5-flash
+  model: gemini-3.5-flash
   description: >
     A logistics expert that can critique a trip/travel plan.
   instruction: >
@@ -621,7 +625,7 @@ critic_agent:
     ELSE, respond with the exact phrase: 'The plan is feasible and meets all constraints.'
 
 refiner_agent:
-  model: gemini-2.5-flash
+  model: gemini-3.5-flash
   description: >
     You are a trip planner, refining a plan based on criticism.
   instruction: >
@@ -632,13 +636,13 @@ refiner_agent:
     ELSE, generate a NEW plan that addresses the critique. Output only the new plan names, like: 'Activity: de Young Museum, Restaurant: Nopa'.
 
 iterative_planner_agent:
-  model: gemini-2.5-flash
+  model: gemini-3.5-flash
   description: >
     A workflow that iteratively plans and refines a trip to meet constraints.
 
 # ---- 10-agent-with-structured-output.py
 problem_analysis_agent:
-  model: gemini-2.5-flash
+  model: gemini-3.5-flash
   description: >
     An expert AI assistant that analyzes user queries and recommends appropriate types of consultant.
   instruction: >
@@ -650,7 +654,7 @@ problem_analysis_agent:
     Focus on the main problem.
 
 consultation_agent:
-  model: gemini-2.5-flash
+  model: gemini-3.5-flash
   description: >
     A helpful AI assistant that provides initial guidance based on a recommended consultant
   instruction: >

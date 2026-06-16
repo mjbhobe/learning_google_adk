@@ -17,7 +17,6 @@ import argparse
 from dotenv import load_dotenv, find_dotenv
 from rich.console import Console
 from rich.markdown import Markdown
-from rich.prompt import Prompt
 
 from google.adk.agents import Agent
 from google.adk.agents import LlmAgent
@@ -25,7 +24,13 @@ from google.adk.models.lite_llm import LiteLlm
 from google.adk.sessions import InMemorySessionService
 
 # pyrefly: ignore [missing-import]
-from utils import load_agent_config, run_agent_query
+from utils import (
+    load_agent_config,
+    run_agent_query,
+    load_cache,
+    save_cache,
+    ask_user_query,
+)
 
 load_dotenv(find_dotenv(), override=True)
 
@@ -55,32 +60,50 @@ openai_greeting_agent = LlmAgent(
 )
 
 
+MAX_CACHE_SIZE = 25
+CACHE_FILE_PATH = os.path.splitext(os.path.basename(__file__))[0] + ".cache"
+PROMPT_LABEL = "Your question (or type 'exit' or press Enter to quit): "
+
+
 async def main():
     console = Console()
     session_service = InMemorySessionService()
     my_user_id = "adk_adventurer_001"
 
-    query = ""
+    cache = load_cache(CACHE_FILE_PATH)
+
     while True:
-        # a simple console based chat with Agent
-        query = Prompt.ask(
-            "[bright_yellow]Your question (or type 'exit' or press Enter to quit): [/bright_yellow]",
-            default="exit",
-        )
-        # query = input()
+        # a simple console based chat with Agent, with up/down arrow history
+        try:
+            query = ask_user_query(cache, PROMPT_LABEL)
+        except KeyboardInterrupt:
+            console.print("\n[bright_yellow]Goodbye![/bright_yellow]")
+            save_cache(cache, CACHE_FILE_PATH)
+            break
+
         if query.strip().lower() == "exit":
             console.print("[bright_yellow]Goodbye![/bright_yellow]")
+            save_cache(cache, CACHE_FILE_PATH)
             break
 
         console.print(f"[green]🗣️ User Query:[/green] '{query}'")
 
-        final_response = await run_agent_query(
-            # greeting_agent,
-            openai_greeting_agent,
-            query,
-            session_service=session_service,
-            user_id=my_user_id,
-        )
+        cached_entry = next((entry for entry in cache if entry["query"] == query), None)
+        if cached_entry is not None:
+            console.print("[cyan](served from cache)[/cyan]")
+            final_response = cached_entry["response"]
+        else:
+            final_response = await run_agent_query(
+                # greeting_agent,
+                openai_greeting_agent,
+                query,
+                session_service=session_service,
+                user_id=my_user_id,
+            )
+            cache.append({"query": query, "response": final_response})
+            if len(cache) > MAX_CACHE_SIZE:
+                cache.pop(0)
+
         console.print("[green]\n" + "-" * 50 + "[/green]")
         console.print("[green]✅ Agent Response:[/green]")
         console.print(Markdown(final_response))

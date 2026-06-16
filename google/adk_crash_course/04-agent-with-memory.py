@@ -23,7 +23,6 @@ from google.adk.tools.agent_tool import AgentTool
 
 from utils import load_agent_config, run_agent_query
 
-
 # load API keys
 load_dotenv(override=True)
 
@@ -79,6 +78,8 @@ async def main():
             multi_day_trip_planning_agent,
             query,
             session_service,
+            # here I am providing an instance of session that will persist
+            # across multiple "run_agent_query()" calls.
             session=my_session,
             user_id=my_user_id,
         )
