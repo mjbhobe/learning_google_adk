@@ -205,8 +205,9 @@ adk, version 2.3.0
 ```
 
 #### Creating your first agent
-* Create the `welcome_agent`, `.env` file and `agent.py` in the above folder structure
-* Open `agent.py` in your favourite IDE or editor and type in the following code
+
+1. Create the `welcome_agent` folder. Within the folde create `.env`, `agent.py`, and `__init__.py` files (see folder structure above)
+2. Open `agent.py` in your favourite IDE or editor and type in the following code
 
 ```python
 from dotenv load_dotenv
@@ -221,3 +222,102 @@ root_agent = Agent(
     You are a friendly assistant that greets the user and responds to their queries
   """,
 )
+```
+
+**NOTE:**
+
+* The _main_ agent must be assigned to the `root_agent` variable. In this example we have just one agent. But real applications usually have multiple agents working together - one of them is the _main_ driver (or _orchestrator_ agent).
+* The _name_ parameter (**mandatory**) is a user-friendly name you give the agent. Though this is a string, the **contents of this string must _strictly_ match Python variable naming conventions**! So `welcome_agent` is ok, but `Welcome Agent` is **not ok**.
+* The _model_ parameter (**mandatory**) is the name of a Google Gemini model hosted on AI Studio (or Vertex AI). _Strictly speaking_ this is not correct - it could be any LLM model supported by ADK, which are all the popular models (from OpenAI, Anthropic, and open source models like the LLamas, Mistrals etc.), but the way we declare those is slightly different. _For the first few lessons_ assume this is a Gemini model only. Use any valid Gemini model name (such as `gemini-2.5-flash`, `gemini-3.1-flash-lite` etc.)
+* The _description_ parameter (**optional**) describes the role of the Agent. If you have used system prompts that tell the LLM what role it should impersonate, for example, "You are an experienced Financial Advisor at a leading Bank", this is what the description parameter does. It is optional for single agent application, like this one, but _is required for multi-agent_ applications. It helps the _main_ agent identify what each of the other agents does (what role it plays) and helps the _main_ agent transfer the workflow to the correct sub-agent. I would treat this as a mandatory parameter for all practical purposes.
+* The _instruction_ parameter (**mandatory**) - this is the most important parameter. This represents the instructions you give the agent to act - what is it that you want the agent to accomplish.
+* Other parameters, which we will cover in later lessons are _tools_ [which is a list of tools that the agent can use], parameters that define input & output schemas and call back functions.
+
+3. Open `__init__.py` and type in the following code:
+
+```python
+from . import agent
+```
+
+* Add your API key to the `.env` file. You should get your API key from Google AI Studio website. Your `.env` file should look something like this:
+
+```bash
+GOOGLE_PROJECT_ID=<<Your Google Project Name on Google Cloud Console>>
+GOOGLE_API_KEY=<<Your API Key>>
+```
+
+#### Running your agent
+
+<div align="center">
+<img src="images/running_agents.png" width="450" height="80" alt="Components of Agents"/>
+</div>
+
+Google ADK offers four primary ways to interact with your agents: Through **Web UI** (`adk web`), Or a **Command-Line Interface (CLI)** (`adk run`), An **API Server** (`adk api_server`), or the **Programmatic Interface** (i.e. Python code). 
+
+The way you define your agent (the core logic within agent dot py) is the same regardless of how you choose to interact with it. The difference lies in how you initiate and manage the interaction.
+
+1. With Web UI (`adk web`), you can interact with your agent through a user-friendly web browser. It is a good option for visual interaction while developing your agent and monitoring agent behavior. **It should only be used for local testing, it is not suitable for a production environment**.
+
+To get started with Web UI, open your terminal, and run the following commands (shown for a Linux/Mac session):
+
+```bash
+# cd to **PARENT** folder of your agent's project folder \
+# (i.e. parent of folder where you saved the agent.py file!)
+$> cd ~/adk_projects  
+# activate local Python environment (changes prompt)
+$ ~/adk_projects> source .venv/bin/activate
+# type adk web <folder_name of agent's project folder>
+(.venv)
+$ ~/adk_projects> adk web welcome_agent
+# this will open up a web-UI from which you can select & 
+# run your agent.
+```
+
+2. With the CLI (`adk run`) you use terminal commands to interact directly with your agent. The CLI is a good option for quick tasks, scripting, automation, and developers comfortable with terminal commands. **This should also only be used for local testing, it is not suitable for a production environment**.
+
+To get started with CLI, open your terminal, and run the following commands (shown for a Linux/Mac session) - these the same as for the web interface EXCEPT for the last command. Instead of `adk web` you use `adk run`.
+
+```bash
+# cd to **PARENT** folder of your agent's project folder \
+# (i.e. parent of folder where you saved the agent.py file!)
+$> cd ~/adk_projects  
+# activate local Python environment (changes prompt)
+$ ~/adk_projects> source .venv/bin/activate
+# type adk web <folder_name of agent's project folder>
+(.venv)
+$ ~/adk_projects> adk run welcome_agent
+# will kick off the agent and allow you to interact with it
+# from command line
+```
+
+3.  Run your agent as a **REST API** , allowing other applications to communicate with it. Running an API server is a **good option for integration with other applications, building services that use the agent, and remote access to the agent**. This approach **can be used for production environments** 😀.
+
+To use the API interface, open your terminal, and run the following commands (shown for a Linux/Mac session). Again, these steps are the SAME as the `adk web` or `adk run` options, but for the last step, where we use `adk api_server` instead.
+
+```bash
+# cd to **PARENT** folder of your agent's project folder \
+# (i.e. parent of folder where you saved the agent.py file!)
+$> cd ~/adk_projects  
+# activate local Python environment (changes prompt)
+$ ~/adk_projects> source .venv/bin/activate
+# type adk web <folder_name of agent's project folder>
+(.venv)
+$ ~/adk_projects> adk api_server welcome_agent
+# this will start a local API server, using Flask, on port 8000
+```
+
+After the server starts, you can then interact with your agent through REST API calls.
+
+4. Finally, the **Programmatic Interface** allows you to integrate ADK directly into your Python applications, or interactive notebooks (like Jupyter and Colab). Unlike the CLI, Web UI, and API server, you don't need the specific project structure, as previously described. Instead you’ll be using a `Session` and `Runner`. You can define and interact with your agent within the same file or notebook cell.
+
+The programmatic interface provides deep integration within applications, custom workflows, notebooks, and fine-grained control over agent execution. **This approach can be used for production environments**. We will cover this later in the lessions, where we'll code all the steps in a Python function (or functions)
+
+**NOTE:** 
+
+1. You can use either `adk_run` (the command line version) or `adk_web` (the 'visual' tool/utility) to run test your _simple_ agents. 
+2. The argument to this is the name of the folder holding your `agent.py` file. 
+3. You can define multiple agents in the `agent.py` file, but _only one_ must be marked as the _root agent_ with the `root_agent = ...` variable. The `adk_web`/`adk_run` commands look for this variable and run it as the main agent (especially where you have multi-agent apps)
+
+Here's how your session could look like (NOTE: I have created projects under a different parent folder. Other than that, everything else above holds):
+
+
