@@ -1,4 +1,4 @@
-# Introduction to the Google Agent Development Kit (ADK)
+﻿# Introduction to the Google Agent Development Kit (ADK)
 (Source [Google Partner Skill Development Course](https://partner.skills.google/course_templates/1275))
 
 <div align="left">
@@ -78,7 +78,8 @@ Google Cloud provides four key paths for building an agent.
 | **Open source frameworks or from scratch with Agent Engine** | Use when you want to  build something custom, you can use basic building blocks and start building from the ground up, for example, with the Google Gen AI SDK or LangChain, where you will also need to make decisions about infrastructure and hosting.|
 | **ADK with Agent Engine** | Use when you want the freedom of custom development with support for communication between agents through conversation history and shared state. |
 
-The Agent Development Kit makes it easier to build multi-agent systems, while handling challenges of agent communication for you. It also frees you from infrastructure decisions through deployment to Agent Engine, a fully managed runtime, so you can focus on building logic and interactions between agents while resources are allocated and autoscaled for you.
+The **Agent Development Kit (ADK)** makes it easier to build multi-agent systems, while handling challenges of agent communication for you. It also frees you from infrastructure decisions through deployment to Agent Engine, a fully managed runtime, so you can focus on building logic and interactions between agents while resources are allocated and autoscaled for you.
+
 
 ### Who is the ADK designed for?
 
