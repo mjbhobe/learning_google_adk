@@ -9,7 +9,7 @@ The ADK is Google's open source framework for building, debugging, evaluating an
 
 ADK supports Python, TypeScript, Go, Java and Kotlin. Feature availability varies across language implementations, and _Python is the most complete implementation_. The **ADK is model-agnostic**, meaning that you can 'point it' at Gemini, Claude, OpenAI, Ollama, or _any provider supported by  LiteLLM_ (an opensource library, which provides a unified interface to dozens of model providers). You can swap models without rewriting your agent logic.
 
-The key distinction from call model API directly is orchestration. When you call a model API directly, you handle context assembly, tool dispatch, retry logic, and state manegement yourself. The _ADK handles all that infrastructure_, so your code expresses what an agent does, not how the runtime manages it.
+The key distinction from call model API directly is orchestration. When you call a model API directly, you handle context assembly, tool dispatch, retry logic, and state management yourself. The _ADK handles all that infrastructure_, so your code expresses what an agent does, not how the runtime manages it.
 
 Select the ADK of your task required one or more of the following:
 
@@ -37,7 +37,7 @@ The ADK organizes everything around four core components: **Agents, Models, Tool
 
   The ADK also provides **workflow agents** types that orchestrate other agents _without using a model_ making the orchestration decision. **SequentialAgent** runs sub-agents one after another, **ParallelAgent** runs them concurrently, and **LoopAgent** repeats a sub-agent until some condition is met.
 
-* **Models**: Models are the language models that power agent reasoning. You specify a model but its identifier string (e.g. `model=gemini-2.5-flash`), and the ADK handles the API calls, token management, and response parsing. You could use a different model per-agent, so different agents in the same system can use different models based on capability and cost.
+* **Models**: Models are the language models that power agent reasoning. You specify a model but its identifier string (e.g. `model="gemini-2.5-flash"`), and the ADK handles the API calls, token management, and response parsing. You could use a different model per-agent, so different agents in the same system can use different models based on capability and cost.
 
 * **Tools:** Tools extend what an agent can do. A tool is any Python function you pass to an agents **tools** list (e.g., `tools=[get_weather, get_time]`). ADK will use the function's name, docstring, and parameter types to build the tool schema. The model reads that schema to know when and how to call the tool.
 
@@ -76,7 +76,7 @@ def lookup_account(account_id: str):
   """
 
   # NOTE: the doc-string of a tool function is very important
-  # be as descriptive as possible about what teh function does, describe ALL parameters (args) and return value.
+  # be as descriptive as possible about what the function does, describe ALL parameters (args) and return value.
   # These details will help agent figure out which tool to call, with what params and for what purpose
 
   return query_billing_database(account_id)
@@ -95,16 +95,18 @@ billing_agent = Agent(
 
 In this example, `lookup_account` is a Python function that queries a billing database to fetch billing details given an account ID.
 
+Parameters of the `Agent` constructor:
+
 * The **name** must be a _unique string identifier_. In a multi-agent system, the name is how a co-ordinator agent refers to this specialist agent when delegating tasks. So choose names that describe the agents role. This name must confirm to Python variable naming conventions.
 * The **model** is the model identifier string. The ADK resolves this to the correct API endpoint. We have used `"gemini-flash-latest"`, which is a technique of future-proofing model aliases. Model strings are intrinsically version-specific (for example, `gemini-2.5-flash`), but using the `latest` alias ensures that the system automatically resolves that to the current recommended Flash model. For example, as of June 2026, `"gemini-flash-latest"` will automatically resolve to `"gemini-3.1-flash"`.
-* The **instruction** is the most important parameter. **It's the system prompt that defines the agent's persona, its scope, its constraints, and any guidance for tool use. A well written instruction keeps the agent on task and prevents it from attempting things outside its responsibility/remit. Keep the instruction very specific - an agent that knows exactly what it handles, and what it doesn't, behaves more reliably.
+* The **instruction** is the most important parameter. **It's the system prompt that defines the agent's persona, its scope, its constraints, and any guidance for tool use**. A well written instruction keeps the agent on task and prevents it from attempting things outside its responsibility/remit. Keep the instruction very specific - an agent that knows exactly what it handles, and what it doesn't, behaves more reliably.
 * The **tools** list contains functions the agent can call. The ADK wraps each function automatically, using its docstring and type hints as the tool schema - hence it's important to define very clear & detailed doc strings and type hints for parameters (and return types, where possible). The model will read that schema to decide when and how a tool should be invoked.
 
-These **additional 2 parameters** are worth knowing for multi-agent work:
+These **additional 3 parameters** are worth knowing, especially if you are going to develop multi-agent systems:
 
 * The **description** is a _concise summary of what the agent does_. In a multi-agent system, a co-ordinator (agent) reads this description to decide which specialist (sub-agent) to route a task to. **If you plan to use this agent as a sub-agent, write the description as a single sentence that clearly states the agents scope**. For example `"A billing agent to query account balances, payment histories and invoices"`.
 * The **output_key** is an optional string. When set, the ADK writes this agent's final response into a session state under that key, making it available to downstream agents in a workflow. For example, setting `output_key="billing_response"` lets a downstream aggregator agent read the billing result without the co-ordinator needing to pass it explicitly.
-* The **output_schema** is an optional string. When you are _forcing_ the agent to produce output in a structured format (for example JSON or Pydantic `BaseModel` derived class), you should use `output_schema` instead of `output_key`. However, `output_schema` is incompatible with tools on some models, so check the model-specific documentation before combining them in a single agent.
+* The **output_schema** is an optional string. When you are _forcing_ the agent to produce output in a structured format (for example as a JSON object or Pydantic `BaseModel` derived class), you should use `output_schema` instead of `output_key`. However, `output_schema` is incompatible with tools on some models, so check the model-specific documentation before combining them in a single agent. This is a known problem with Anthropic Claude models (Claude 3, 3.5, and 4.6 Sonnet) and Gemini Flash 1.5 Flash and earlier models for example.
 
 Here is the agent definition with all these new parameters:
 
@@ -125,13 +127,13 @@ billing_agent = Agent(
 
 The ADK ships with a CLI that handles the full development loop: scaffold, run, inspect, iterate.
 
-You start a new project with `adk create my_agent` (replace `my_agent` with your project name). This creates a sub-directory called `my_agent` in the current directory; withing the `my_agent` subdirectory, it creates 3 files `agent.py` (for your agent definition), `__init__.py`, and a `.env` file for your API key.
+You start a new project with `adk create my_agent` (replace `my_agent` with your project name). This creates a sub-directory called `my_agent` in the current directory; and within the `my_agent` subdirectory, it creates 3 files `agent.py` (for your agent definition), `__init__.py`, and a `.env` file for your API key.
 
 Open `agent.py` and define your agent as `root_agent`. ADK's runner discovers your agent by looking for a module-level variable named (exactly) `root_agent`; using any other name means the runner won't fint it and will error on startup. For mult-agent setup, you can define multiple agents in this `agent.py` file, but the main or orchestration agent must be defined with the `root_agent` variable (excatly).
 
 To interact with (run) the agent in a terminal session, use `adk run my_agent` on the prompt. This opens a REPL where you type messages to the agent and see its responses inline, including which tools are called and what they returned.
 
-For a richer development experence, `adk web` launches a browser interface at `http://localhost:8000`. It gives you a _chat panel_ and a _trace view_ inside the window. The latter will show you each step of the agent's reasoing: which model calls were made, which tools were invoked, what each tool returned, and (most importantly) how the agent arrived at its final response. It's the fastest way to validate that your instructions and tools are providing the behavoir expected.
+For a richer development experence, `adk web` launches a browser interface at `http://localhost:8000`. It gives you a _chat panel_ and a _trace view_ inside the window. The latter will show you each step of the agent's reasoning: which model calls were made, which tools were invoked, what each tool returned, and (most importantly) how the agent arrived at its final response. It's the fastest way to validate that your instructions and tools are providing the behavoir expected.
 
 When you are ready to expose the agent as a REST API endpoint, the `adk api_server adk_agent` command starts an HTTP server that accepts user messages and streams agent responses, using the same runner that powers the terminal and browser mode.
 
@@ -151,12 +153,14 @@ The ADK offers several key advantages for developers building agentic applicatio
 While other SDKs allow you to query models, ADK provides a higher-level framework that handles the complex coordination between multiple models for you.
 
 ## ADK tools, context, and state
+
 In this section we'll discuss how the ADK converts Python functions into tools the model can use. We'll discover how these tools reach into sessions state and influence agent flow. We'll also learn to observe and control the agent execution lifecycle using callbacks and plugins.
 
 ### Building Tools the model can use
 When you pass a Python function to an agent's **tools** list, the ADK inspects its signature to build a JSON schema. The model receives that schema alongside the agent's instructios and uses it to know what tools are available, when to call each tool, and what arguments to pass to the respective tool. Refining the scheme correctly ensures reliable tool usage.
 
 Three elements define schema quality:
+
 1. **The function name**: The function name becomes the tool name. Use specific, descriptive function names. For example, `lookup_account` tells the model exactly what the function does; `get_data` is does not.
 2. **The docstring**: The docstring is your most important element. It's the model's only guide to when and why yo call your tool. Describe the tool's purpose, what each parameter expects, and how to interpret the return value, including error cases as clearly and as detailed as possible. If the tool returns `{"status":"error"}` when an account does not exist, say so explicitly. **A vague/incomplete docstring produces unreliable tool selection; a precise one keeps the model on task**.
 3. **Type hints**: Use type hints on all parameters and return type to sharpen the schema the model uses to construct arguments. Omitting them produces weaker schema and less consistent invocations.
@@ -198,15 +202,18 @@ def fetch_account(account_id: str, tool_context: ToolContext) -> dict:
     return {"error": "Access denied!"}
   return lookup_account(account_id)
 ```
+
 2. **Flow Control**: 
-  * `tool_context.actions` lets a tool signal what should happen next
-  * Setting `tool_context.actions.transfer_to_agent="agent_name"` hands the conversation to another agent ("agent_name")
-  * Setting `tool_context.actions.escalate=True` passes control up to the parent agent in a multi-agent hierarchy.
-  * Setting `tool_context.actions.skip_summarization=True` tells the ADK to pass the tool's raw output directly to the model without summarizing it first.
-  * Use this to ensure that the model reasons over the full, high-fidelity result.
+
+    * `tool_context.actions` lets a tool signal what should happen next
+    * Setting `tool_context.actions.transfer_to_agent="agent_name"` hands the conversation to another agent ("agent_name")
+    * Setting `tool_context.actions.escalate=True` passes control up to the parent agent in a multi-agent hierarchy.
+    * Setting `tool_context.actions.skip_summarization=True` tells the ADK to pass the tool's raw output directly to the model without summarizing it first.
+    * Use this to ensure that the model reasons over the full, high-fidelity result.
   
-3. **Artifacts**: for large data (documents, images, query result sets), use `tool_context.load_artifact(name)` and `tool_context.save_artifact(name, data)`
-  **Artifacts are named binary objects stored in the session**. Keeping large data in artifacts rather than return value or in state prevents the event payload from bloating the context window (thus saving you on token costs!).
+3. **Artifacts**: for large data (documents, images, query result sets), use `tool_context.load_artifact(name)` and `tool_context.save_artifact(name, data)`.
+
+    **Artifacts are named binary objects stored in the session**. Keeping large data in artifacts rather than return value or in state prevents the event payload from bloating the context window (thus saving you on token costs!).
   
 4. **Authentication**: for tools that call authenticated external APIs, `tool_context.request_credentials(auth_config)` initiates an authentication flow, and `tool_context.get_get_auth_response()` retrieves the credentials once provided.
 
