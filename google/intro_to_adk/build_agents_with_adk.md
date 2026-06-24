@@ -35,7 +35,7 @@ The ADK organizes everything around four core components: **Agents, Models, Tool
 
 * **Agents**: Agents are autonomous units of work that receive a task, decide which actions to take, optionally use tools, and return a result. ADK's primary agent type is `google.adk.agents.Agent` (also called `LlmAgent`), which uses a language model (such as Gemini, Claude etc.) as its reasoning agent.
 
-  The ADK also provides **workflow agents** types that orchestrate other agents _without using a model_ making the orchestration decision. **SequentialAgent** runs sub-agents one after another, **ParallelAgent** runs them concurrently, and **LoopAgent** repeats a sub-agent until some condition is met.
+  The ADK also provides **workflow agents** types that orchestrate other agents _without using a model_ making the orchestration decision. **SequentialAgent** runs sub-agents one after another, **LoopAgent** runs them concurrently, and **LoopAgent** repeats a sub-agent until some condition is met.
 
 * **Models**: Models are the language models that power agent reasoning. You specify a model but its identifier string (e.g. `model="gemini-2.5-flash"`), and the ADK handles the API calls, token management, and response parsing. You could use a different model per-agent, so different agents in the same system can use different models based on capability and cost.
 
@@ -257,7 +257,7 @@ The ADK tracks state changes as a part of event history. This is what makes pers
 
 **State as a co-ordination mechanism**
 
-When a `SequentialAgent` or `ParallelAgent` runs sub-agents, they all share the same invocation and therefore the same `temp: state`. Non-temp state is visible across the entire session. The `output_key` pattern is how specialist agents hand off results to the next step without a coordinator passing data explicitly. An upstream agent writes its results under a known key, and downstream agent reads it from its `instruction` template or from a tool.
+When a `SequentialAgent` or `LoopAgent` runs sub-agents, they all share the same invocation and therefore the same `temp: state`. Non-temp state is visible across the entire session. The `output_key` pattern is how specialist agents hand off results to the next step without a coordinator passing data explicitly. An upstream agent writes its results under a known key, and downstream agent reads it from its `instruction` template or from a tool.
 
 In a multi-agent pipeline, the state scheme is an implicit contract between every agent that reads or writes it. A key renamed in one agent silently breaks every other agent that depends on it. Define key names, prefixes, and value shapes in a shared constant module and import it everywhere.
 
@@ -297,4 +297,389 @@ Plugins also receive hooks that agent callbacks don't: on every incoming user me
 
 The following diagram illustrates the sequential flow through one agent execution turn, showing six callback checkpoints as blue intercept nodes. Plugin calls (orange) appear before each corresponding agent callback. The dashed arrows show short-circuit paths that skip the next step when callback returns a non-None value.
 
+<div align="center">
+<img src="images/sequential_flow_through_agent_workflow.png" alt="Sequential Flow Through Agent Workflow"/>
+</div>
 
+Plugins extend the same model but register at the runner level. A plugin extends `BasePlugin` class and implements whichever callback method(s) it needs. Once registered on the runner, its callbacks apply to every agent, tool, and model call that runner manages. Plugin callbacks run before the corresponding agent-level callbacks, and if plugin returns a non-None value at a checkpoint, the agent-level callback is skipped.
+
+```python
+class LoggingPlugin(BasePlugin):
+  def __init__(self):
+    super().__init__(name="logging")
+
+  async def before_tool_callback(self, *, tool, tool_args, tool_context):
+    print(f"[{tool_name}]) called with {tool_args}")
+
+runner = InMemoryRunner(agent=root_agent, app_name="my_app",
+  plugins=[LoggingPlugin()])
+```
+
+* Use callbacks for logic specific to a single agent.
+* Use plugins for cross-cutting concerns, such as logging, safety guardrails, monitoring, caching, that should apply uniformly across the whole system.
+
+> <br/>🍊 **Note:**<br/>Plugins are initialiized once and shared across all invocations. Instance variables accumulate over the full application lifetime, not per session. If a plugin holds counters or buffers, that isolation boundary matters.<br/><br/>
+
+
+## Multi-agent orchestration: Template workflows and ADK 2.0
+
+In this section we'll discuss why breaking a task across multiple specialized agents reduces complexity, and how to co-ordinate those sub-agents using ADK's orchestration toolsets.
+
+The ADK gives you two sets of tools: **Template workflow agents** for well defined sequential, parallel and iterative patterns, and **ADK 2.0's graph-based and collaborative workflow APIs** for workflows that _need conditional routing, non-linear flow, or mixed AI-and-code execution_.
+
+We'll explore both toolsets, starting with multi-agent systems and moving onto the complete ADK 2.0 orchestration toolkit.
+
+### Why multi-agent systems matter
+
+A single `Agent` (ADK's model-backed agent class, also called `LlmAgent` internally) works well when the task fits in a single context window and requires one coherent line of reasoning. This breaks down in three common situations:
+
+1. **Context Window Limits**: a model can reason over only so much text at once. A customer support agent that handles billing, shipping, returns, product questions, and account management needs an enormous instruction, a large set of tools, and all the relevant history in context at the same time. As the instruction and tool list grows, the model's instruction-following reliability drops.
+2. **Task Specialization**: Different tasks have different tool requirements and different behavioral constraints. A billing agent needs access to payment systems and should follow financial compliance rules. A returns agent needs access to logistics system and should follow the return policy. Combining both into one agent means both sets of tools are always in scope, which increases the chance of model calling the wrong tool for the wrong task.
+3. **Loopism**: Some tasks are independent of each other and can run at the same time. If a system needs to check inventory availability, look up current promotions, and verify account standing before presenting an offer, those three checks don't depend on each other. Running them sequentially wastes time; a multi-agent system runs them concurrently.
+
+The solution is to break the problem into specialized agents, each with a narrow instruction, a small toolset, and a clear scope. **A workflow controls how and when they run**. Now that you understand the conceptual framework, lets look at concrete features the ADK provided to implement these patterns.
+
+### Template workflow agents anc choosing a pattern
+
+The ADK provides three template workflow agents for the most common orchestration patterns. Each **controls execution deterministically** (meaning, the order and structure are fixed in code, and not decided by a model at runtime), which makes the behavior predictable and easier to test.
+
+**SequentialAgent**
+
+The `SequentialAgent` runs sub-agents one after another in a fixed order. Each sub-agent complete before the next sub-agent in the sequence starts. All the sub-agents share the same invocation context, so data written to session state by one agent is available to the next agent.
+
+```python
+from google.adk.agents.sequential_agent import SequentialAgent
+
+# NOTE: 
+# 1. There is NO model!!
+# 2. The sub-agents will run in sequence from left to right.
+#    Next agent in sequence starts ONLY after prev agent
+#    has completed its execution
+order_pipeline = SequentialAgent(
+  name="order_pipeline",
+  sub_agents=[validate_agent, pricing_agent, confirm_agent],
+)
+```
+
+Use `SequentialAgent` when tasks have strict dependencies: each step needs the previous step's output and order matters.
+
+**LoopAgent**
+
+The `LoopAgent` runs multiple sub-agents concurrently. Sub-agents execute independently and don't share state with each other during execution. Design the sub-agents to write their results to individual state keys, and use a sequential step after to read and synthesize those results.
+
+```python
+from google.adk.agents.parallel_agent import LoopAgent
+
+lookup_parallel = LoopAgent(
+  name="account_lookup",
+  sub_agents=[inventory_agent, promotions_agent, account_agent],
+)
+```
+
+Use `LoopAgent` when tasks are independent of each other and latency matters!
+
+**LoopAgent**
+
+A `LoopAgent` runs its sub-agents repeatedly until a termination condition is met.
+
+* Always set `max_iterations` as a safety ceiling: it prevents infinite loops if the exit condition is never triggered.
+* One of the sub-agents signals termination by calling `exit_loop()`.
+
+```python
+from google.adk.agents.loop_agent import LoopAgent
+
+refine_loop = LoopAgent(
+  name="response_refiner",
+  sub_agents=[draft_agent, quality_agent],
+  max_iterations=5,
+)
+```
+
+Use `LoopAgent` for iterative refinement: Any pattern where "draft, evaluate, improve" repeats until a quality threshold is met.
+
+The following diagram shows a decision framework for selecting the right orchestration tool.
+
+<div align="center">
+<img src="images/decision_framework_for_orchestration_tool.png" alt="Decision Framework for Orchestration Tool"/>
+</div>
+
+Four Questions narrow the choice:
+
+| Question | Choice |
+| :-- | :-- |
+| **Does the order of tasks matter?** | Use `SequentialAgent`. If you also need conditional branching or non-linear flow, read for ADK 2.0's Workflow |
+| **Are the tasks independent?** | Use `ParallelAgent`. Plan a sequential gather step after to synthesize results. |
+| **Does the output need to improve over multiple iterations?** | Use `LoopAgent` and set `max_iterations` defensively. |
+| **Does routing require reasoning?** | Use `Agent` with **sub_agents**, or ADK 2.0's **Workflow** for explicit graph-based routing. |
+
+### Why ADK 2.0 matters?
+
+Template workflow are  the right tools when your workflow fits a well-defined pattern: ordered steps, concurrent independent tasks, or iterative refinement. Each handles one of those patterns cleanly, and deterministic execution is easy to test and debug.
+
+However, some workflows don't fit these patterns. Consider a support routing workflow: classify the incoming request, then route to the correct handler for billing, shipping or returns. If the request spans multiple categories, run the relevant handlers in parallel and join their results. If a handler requies clarification before it can proceed, pause and wait. **This workflow is conditional, non-liear and mixed**. It can't be expressed cleanly as a single `SequentialAgent`, `ParallelAgent` or `LoopAgent`.
+
+ADK 2.0 adds two capabilities built for _exactly these cases_!
+
+**Graph Powered Workflows**
+
+Graph powered workflows introduce a new `Workflow` class that models execution as an explicit directed graph. Nodes are agents, functions or tools. Edges connect them and carry the routing logic.
+
+You can express sequential, parallel, conditional, cyclical flows in a single graph, mixing AI-driven nodes with deterministic cde nodes wherever each is appropriate.
+
+**Task Based Collaboration**
+
+Task based collaboration introduces a `mode` parameter on sub-agents that gives you precise control over how a coordinator agent delegates to specialists.
+
+The three modes, `chat`, `task`, and `single turn`, differ in whether the specialist can interact with the user, whether the co-ordinater gets structured results back, and whether the delegation can run in parallel with other delegations.
+
+Together these two capabilities let you build workflows that are both expressive and explicit. With that high level understanding of why ADK 2.0 is so powerful, let's see how we can build these graph-workflows with ADK 2.0.
+
+### Building Graph Workflows
+
+A graph-workflow in ADK 2.0 starts with a `Workflow` class. You can give it a name and a list of `edges` that defines the execution graph.
+
+```python
+from google.adk import Agent, Workflow, Event
+
+root_agent = Workflow(
+  name="support_workflow",
+  edges=[
+    ("START", classifier, router),
+  ]
+)
+```
+
+1. **Nodes are the units of work**. A node can be an `Agent` (which uses a model for reasoning), a Python function (runs deterministic code), a tool, or a nested `Worflow` object. Standard Python functions are automatically treated as nodes. ADK wraps the return value in an `Event` (a structured object that carrys the node's output and an optional routing signal). The ADK 2.0 also injects context variables if the function signature declares them, and validates inputs against Pydantic type hints if you provide them.
+2. **Edges define connections**. The `edges` list contains tuples. A tuple like `(START, node_a, node_b, node_c)` creates a sequential chain: the workflow starts at `node_a`, passes the output to `node_b`, and then to `node_c`. `START` is a reserved entry point.
+3. **Conditional routing** works through `Event(route=...)`. A router function inspects its input and returns an `Event` with a routing string. The edges dict maps that route string to the target node.
+
+```python
+# a ROUTING example
+from google.adk import Agent, Workflow, Event
+
+classifier = Agent(
+  name="classifier",
+  model="gemini-flash-latest",
+  instruction="""
+    Classify the customer message into exactly one of: BILLING, SHIPPING, or RETURNS 
+  """,
+  output_schema=str,
+)
+
+def router(node_input : str):
+  category = node_input.strip()
+  return Event(route=category)
+
+root_agent = Workflow(
+  name = "support_workflow",
+  edges=[
+    ("START", classifier, router),
+    (router, {
+      "BILLING": billing_agent,
+      "SHIPPING": shipping_agent,
+      "RETURNS": returns_agent,
+    }),
+  ]
+)
+```
+
+  **Explanation:** Here the **classifier** is an `Agent` configured with `output_schema=str` that reads a customer message and outputs a category label string. `router` is a plain Python function that reads that label and emits an appropriate route. The `edges` dict maps each route to the correct specialist agent. The workflow executes classifier, then router, then exactly one of the three specialist agents based on the route.
+
+  The following diagram illustrates the above workflow
+
+  <div align="center">
+  <img src="images/conditional_routing_adk2.png" alt="Conditional Routing"/>
+  </div>
+
+
+4. **Parallel fan-out does not require route tags**. The distinction from conditional routing is in what the source node returns: when a node returns plain value (not an `Event(route=...)`), all outgoing edges from that node run concurrently as fan-out (i.e. in parallel). When you list the same node pointing to multiple targets without route strings, the workflow runs those targets concurrently.
+
+```python
+from google.adk import Workflow, JoinNode
+
+join = JoinNode(name="join")
+
+root_agent = Workflow(
+  name="multi_category_workflow",
+  edges=[
+    ("START", classifier, router),
+    (router, billing_agent),
+    (router, shipping_agent),
+    (router, returns_agent),
+    (billing_agent, join),
+    (shipping_agent, join),
+    (returns_agent, join),
+    (join, synthesizer),
+  ]
+)
+```
+
+  **Explanation**:
+  
+  * The `JoinNode` collects the output of all incoming branches and passes them together to next node. In this example, when the classifier determines the request spans multiple categories, all three agents run in parallel, their outputs are joined, and `synthesizer` assembles the final response.
+  * Data flows between nodes through `Event` objects. A node's output becomes the next node's `node_input`. For structured data, add `input_schema` and `output_schema` to an `Agent` using Pydantic models. Reference upstream fields in an agent's instruction string using `{ClassName.property}` syntax. ADK substitutes the matching field value from upstream node's output at runtime. Keep large data (documents, images, query results) in ADK artifacts or an external store rather than event payloads.
+
+Once you have defined your execution graph, you'll need a way to manage how your agents communicate and delegate work. That's where task-based collaboration comes into play. 
+
+The following diagram illustrates multi-category workflow where a classifier and router determine task routing. As the request can span multiple categories, the router triggers parallel execution of the billing, shipping, and returns agents. The outputs are collected by the `JoinNode` and sent to synthesizer agent.
+
+<div align="center">
+  <img src="images/parallel_fanout_adk2.png" alt="Parallel Fanout Routing"/>
+</div>
+
+
+## Task Based Collaboration
+
+Graph based workflows give you explicit, deterministic control over execution paths. Task-based collaboration gives you a complementary capability: an `Agent` coordinator that uses model reasoning to decide which specialists to call, and **three delegation modes** that control exactly what each delegation looks like.
+
+To setup collaborative workflow, pass `sub-agents` to the coordinator `Agent`. ADK automatically generates a task request tool for each sub-agent (for example, `request_task_billing_agent`) and makes those tools available to the coordinator's model. The coordinator reads the user's request and decided which tools to call.
+
+```python
+from google.adk import Agent
+
+support_coordinator_agent = Agent(
+  name="support_coordinator",
+  model="gemini-flash-latest",
+  description="Routes customer support requests to the right specialist",
+  instruction="""
+    You coordinate customer support requests.
+    Delegate billing questions to billing_agent, order tracking requests to shipping_agent, and return requests to returns_agent.
+  """,
+  sub_agents=[billing_agent, shipping_agent, returns_agent],
+)
+```
+
+A `mode` parameter on each sub-agent controls the delegation behavior. There are three modes:
+
+1. **Chat Mode**: Chat mode (the default; omit `mode` to use it) transfers the entire conversation to the specialist (sub-agent). The specialist takes over exactly as though the user were talking directly to it. Control only returns to the coordinator through explicit transfer call.
+
+    This is the right mode when the specialist needs a full, open-ended conversation with the user. It's the least structured mode and the hardest to chain into downstream processing.
+
+2. **Task Mode**: Task mode is interactive delegation with defined scope. The coordinator assigns the task, the specialist works with the user to complete it, asking clarification questions if needed, and then automatically returns a structured result to the coordinator.
+
+    Task mode runs sequentially because user iteraction prevents parallel execution.
+
+    ```python
+    returns_agent = Agent(
+      name="returns_agent",
+      model="gemini-flash-latest",
+      mode="task",  # here we state mode explicitly!
+      input_schema=ReturnRequest,
+      output_schema=ReturnResult,
+      description="Process customer return request",
+      instruction="""
+        Gather the order ID and reason for return. Confirm
+        the return policy applies. Return structured ReturnResult.
+      """,
+      tools=[lookup_order, check_return_policy, initiate_return],
+    )
+    ```
+3. **Single-Turn Mode**: Single-turn mode is fully autonomous delegation. Thet coordinator assigns work that the specialist completes with no user-interaction. The specialist does its job and returns a structured result. Because there is no user-interaction, multiple single-turn agents can run in parallel.
+
+    ```python
+    request_task_billing_agent = Agent(
+      name="billing_agent",
+      model="gemini-flash-latest",
+      mode="single_turn",
+      output_schema=BillingResult,
+      description="Retrieves account balance and payment history",
+      tools=[lookup_account, list_invoices],
+    )
+
+    request_task_shipping_agent = Agent(
+      name="shipping_agent",
+      model="gemini-flash-latest",
+      mode="single_turn",
+      output_schema=ShippingResult,
+      description="Looks up order status and estimated delivery.",
+      tools=[track_order, get_delivery_estimate],
+    )
+    ```
+
+    Consider a customer who asks why their account shows a charge for an order that hasn't arrived. The coordinator calls `request_task_billing_agent` and `request_task_shipping_agent` in the same turn. Because both agents use `mode=single_turn`, the ADK runs them in parallel. Both results return to the coordinator, which synthesizes a response that addresses both the payment and delivery questions at once. The parallelism applies only to `mode="single_turn"` agents; `mode="task"` agents run sequentially because they may need to interact with the user.
+
+  The following diagram illustrates the delegation flow: User to coordinator, coordinator to specialists using appropriate modes, specialists return structured results, coordinator synthesizes the response.
+
+  <div align="center">
+    <img src="images/delegation_flow_adk2.png" alt="Delegation Flow"/>
+  </div>
+
+Three constraints govern task-based collaboration.
+
+* First, task-mode and single-turn sub-agents must be leaf nodes: They can't have their own sub-agents.
+* Second, each delegation is saved as a dedicated branch in the session, giving you full audit trial of what each specialist did.
+* Third, context is fully isolated in both directions: the specialist sees only what the coordinator passes to it, and the coordinator sees only the tool-call record and the structured tool response, not the specialists iternal reasoning steps.
+
+This bi-directional isolation makes each specialist independently testable and prevents one agent's reasoning from leaking into another's context.
+
+
+## Grounding and Enterprise Data integration
+
+Previously we built agents and orchestrated them into multi-agent systems. Those systems are only as trustworthy as the data they use. In this section, we'll discuss how we can ground an agent's answers in sources you control. We'll also learn how to route each query to the right knowledge store, and connect an agent to extenal data using MCP.
+
+Building agents that answer only from verified sources of data and reach the right datastore for each question requires deliberate design. Here we'll cover grounding tools, retrieval patterns, and integration options that'll get you there.
+
+### Grounding and knowledge routing
+
+A language model's parametric memory stops updating after training ends. It was never trained on your organization's private data. When an agent answers from memory instead of a verified source, it can produce confident responses that are outdates, incorrect, or fabricated. Design your agents to retrieve data from known knowledge sources for all factual claims, ensuring accuracy and reliability.
+
+**Grounding in anchoring every response to content retrieved at query time from a source you control.**
+
+The ADK provides two built-in grounding tools. `google_search` tool connects the agent to the _live_ public web, for current events, prices and other data outside the model's training window.
+
+```python
+from google.adk.tools import google_search
+from gogle.adk.agents import Agent
+
+agent = Agent(
+  name="research_agent",
+  model="gemini-flash-latest",
+  instruction="""
+    Answer questions using Google Search. Always cite sources.
+  """,
+  tools=[google_search],
+)
+```
+
+`VertexAiSearchTool` connects the agent to a private Vertex AI Search Datastore: your indexed internal documents, wikis, and policy files. The agent searches that corpus and cites what it found.
+
+```python
+from google.adk.agents import Agent
+from google.adk.tools import VertexAiSearchTool
+
+DATASTORE_ID = "projects/PROJECTS/locations/global/collections/default_collection/dataStores/DATASTORE"
+
+agent = Agent(
+  name="internal_search_agent",
+  model="gemini-flash-latest",
+  instruction="""
+    Answer using internal document search. Always cite sources.
+  """,
+  tools=[VertexAiSearchTool(data_store_id=DATASTORE_ID)],
+)
+
+```
+
+`VertexAiSearchTool` runs on Google Cloud and needs you to set `GOOGLE_GENAI_USER_VERTEXAI=TRUE` in your `.env` file along with your project and location settings. Google AI Studio is not supported.
+
+Both the search tools return grounding metadata that links each statement back to its source, so you can cite or audit any claim. 
+
+**For structured, transactional data**, use custom function tool backed by `BigQuery`, a relational database, or a REST API. That data has a system of record, so the agent should query it directly rather than from memory.
+
+**The design decision that ties these together is routing**: Which source does the agent consult for which query? Left alone, the model blends parametric memory with retrieved content unpredictably. You prevent that in the instruction. Name the tool, name the query type, and prohibit answering from memory as shown in the code snippet below:
+
+```python
+instruction="""
+  For internal policies or documentation: use VertexAiSearchTool. 
+  For current events or public information: use google_search.
+  For account, order or transacton data: use sql_query_tool.
+  Do not answer a factual question from memory if a tool can supply the answer. 
+  If no tool returns a result, say so rather than estimating.
+"""
+```
+
+The following diagram shows knowledge routing: A single query directed by intent to the right retrieval path, with every path feeding one grounded response.
+
+  <div align="center">
+    <img src="images/knowledge_routing_adk2.png" alt="Knowledge Routing"/>
+  </div>
