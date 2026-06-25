@@ -1,5 +1,7 @@
 ﻿# Build Agents with the ADK
 
+Based on [Google Partner Skills Program](https://partner.skills.google/paths/4144/course_templates/1752/documents/632034)
+
 ## Agent, tools, and runners: The ADK model
 In this section we'll discover what the Google Agent Development Kit (ADK) is, what are its core components, how they fit together, and how to configure and run a simple agent.
 
@@ -9,7 +11,7 @@ The ADK is Google's open source framework for building, debugging, evaluating an
 
 ADK supports Python, TypeScript, Go, Java and Kotlin. Feature availability varies across language implementations, and _Python is the most complete implementation_. The **ADK is model-agnostic**, meaning that you can 'point it' at Gemini, Claude, OpenAI, Ollama, or _any provider supported by  LiteLLM_ (an opensource library, which provides a unified interface to dozens of model providers). You can swap models without rewriting your agent logic.
 
-The key distinction from call model API directly is orchestration. When you call a model API directly, you handle context assembly, tool dispatch, retry logic, and state management yourself. The _ADK handles all that infrastructure_, so your code expresses what an agent does, not how the runtime manages it.
+The key distinction from calling model APIs directly is orchestration. When you call a model API directly, _you_ handle context assembly, tool dispatch, retry logic, and state management yourself. The _ADK handles all that infrastructure_, so your code expresses what an agent does, not how the runtime manages it.
 
 Select the ADK of your task required one or more of the following:
 
@@ -683,3 +685,129 @@ The following diagram shows knowledge routing: A single query directed by intent
   <div align="center">
     <img src="images/knowledge_routing_adk2.png" alt="Knowledge Routing"/>
   </div>
+
+> <br/>📜 **Summary:**<br/>Grounding keeps answers anchored to real sources. Knowledge routing send each query to the right store. MCP extends an agent's reach to data and tools beyond the ADK's built-ins. Together, they let a multi-agent system draw on the full bredth of enterprise data while keeping every factual claim verifiable.<br/><br/>
+
+## Deploying Agents to Gemini Enterprise
+
+An Agent delivers value only when it reaches the people who need it, running reliably without infrastructure management.
+
+In this section we'll learn how to move an Agent from source-code to managed service on Agent Runtime, and how registering it in Gemini Enterprise (older name: Vertex AI) puts it in front of users across an organization. This allows agents to run reliably at enterprise scale without manual infrastructure management.
+
+### The Gemini Enterprise Agent Platform Ecosystem
+
+The **Gemini Enterprise Agent Platform** (a.k.a _Vertex AI Platform_) is Google cloud's managed platform for building, deploying, governing and optimizing AI agents. It consolidates capabilities that were previously spread across Vertex AI, Vertex AI Agent Builder, and Agent Engine into one platform. Agent Runtime is the new name for Agent Engine.
+
+The platform organizes it's capabilities across 4 pillars:
+
+| Pillar | Description |
+| :-- | :-- |
+| **Build** | Where the ADK lives. It's the code-first framework we've been using across this document to define agent behavior. |
+| **Scale** | Where Agent Runtime (Agent Engine) lives. It's the managed service that runs your deployed Agent(s). |
+| **Govern** | Includes Agent Registry (brand new service), a centralized catalog of approved agents, tools, and MCP servers across the organization. |
+| **Optimize** | Includes evaluation, observability, and simulation tooling for improving agent quality after deployment. |
+
+**Gemini Enterprise** is a separate product. It's the end-user web application that employees use to interact with AI Agents. An agent deployed to **Agent Runtime** (_Vertex AI Agent Engine_) doesn't automatically appear Gemini Enterprise. You register it there explicitly - we'll cover how in this section. **Registering an Agent in Gemini Enterprise is a separate step from adding it to Agent Registry.**
+
+The following diagram illustrates how ADK sits between the _Build pillar_, _Agent Runtime_ within the _Scale pillar_, and _Agent Registry_ within the _Govern Pillar_. It also shows Gemini Enterprise, which is the separate end-user application where you register agents after deployment.
+
+<div align="center">
+    <img src="images/gemini_enterprise_agent_platform.png" alt="Gemini Enterprise Agent Platform"/>
+</div>
+
+## Deploying with the ADK CLI and Agents CLI
+
+**Agent Runtime** (_Vertex AI Agent Engine_) is a fully managed service that handles scaling, cold starts, session persistence, and the network interface your agents needs to recieve requests. Deploying to it creates a `reasoningEngine` resource. That resource is the deployable unit, and its path is the handle you later hand to Gemini Enterprise.
+
+A multi-agent system deploys as a single unit. You deploy the agent project rooted at `root_agent`, which means the co-ordinator and its sub-agents together, and the Agent Runtime hosts the whole tree behind one `reasoningEngine` resource. The orchestration you build, carried over to the deployed agent unchanged, packaged the same way `adk web` discovers it locally.
+
+**Deployment assumes a billing-enabled Google Cloud project**, the Agent Platform and Cloud Resource Manager APIs enabled, an authenticatied `gcloud CLI`, and a standard ADK agent directory. 
+
+The two most direct routes to Agent Runtime are CLIs. Your choice depends on the amount of infrastructure management you prefer. Standard deployment uses ADK CLI directly. It's the right path, where you already have a project configured and want direct control over deployment parameters. You target Agent Runtme with `agent_engine` subcommand.
+
+```bash
+adk deploy agent_engine \
+  --project=$PROJECT_ID \
+  --region=$LOCATION_ID \
+  --display_name="Support Coordinator" \
+  support_agent
+```
+
+A successful deployment prints a resource path, such as `projects/PROJECT_ID/locations/LOCATION/reasoningEngines/RESOURCE_ID`. The trailing numeric `RESOURCE_ID` is what you keep for registration.
+
+Agents CLI is the right path when you want a production-ready environment setup for you, with CI/CD pipelines and infra-as-code through Terraform. You scaffold the project structure once, then deploy, and the result is the same `reasoningEngine` resource as the standard path. Whichever path you take, review any generated infrastructure against an organization's security standards before production.
+
+The following diagram illustrates the three-step deployment flow: Building the agent(s) with the ADK, deploying to Agent Runtime with ADK CLI or Agents CLI, then registering and sharing the resulting resource in Gemini Enterprise.
+
+<div align="center">
+    <img src="images/three_step_deployment_flow.png" alt="Three step deployment flow" height=300/>
+</div>
+
+### Configuring deployments programmatically
+
+Both CLI paths are convenience wrappers around one underlying mechanism: a programmatic call to `client.agent_engines.create()` in the Vertex AI SDK. Use the SDK directly when you need configuration control the CLI does not expose. That might mean choosing how your code reaches Agent Runtime, or tuning how the deployed service runs.
+
+The call accepts several deployment sources beyond your local agent directory:
+
+* **An in-memory agent object**: suited to interactive development in notebooks.
+* **Local source files or Dockerfile**: No cloud storage bucket required, which suits CI/CD pipelines.
+* **A prebuilt container image from Artifact Registry**: for teams that alread build and manage their own containers.
+* **A connected Git Repository, through Developer Connect**: Deploys straight from a linked repo, without a local build step.
+
+A `config` dictionary on the same call shapes how the deployed service runs. It groups into a few categories:
+
+| Category | Description |
+| :-- | :-- |
+| **Scaling & resources** | Instance count bounds, per-container CPU and memory, and request concurrency. |
+| **Identity and Secrets** | A dedicated agent identity or custom service account, plus environment variables backed by Secrets Manager. |
+| **Networking and Compliance** | Private Service Connect interfaces and customer-managed encryption keys. |
+
+Here is an example of the shape of the call:
+
+```python
+remote_agent = client.agent_engines.create(
+  agent=local_agent,
+  config= {
+    "display_name" : "Order Support Agent",
+    "min_instances" : 1,
+    "max_instances" : 10,
+    "resource_limits": {"cpu" : "4", "memory": "8Gi"},
+  },
+) 
+```
+
+The returned `remote_agent` wraps the same kind of `reasoningEngine` resource the CLI paths produce. `remote_agent.api_resource.name` returns its resource path, the string you carry into registration.
+
+### Registering and sharing in Gemini Enterprise
+
+Registering an agent in Gemini Enterprise makes it available to the web app, where an organization's user can invoke it. Registration needs the Gemini Enterprise Admin role, the Discovery Engine API enabled (it powers Gemini Enterprise), an existing Gemini Enterprise app, and the `reasoningEngine` resource URL from deployment.
+
+One compatability rule matters: The agent's deployment region must align with the app's location, so a `US` app expects a `us-` region and a `global` app accepts _any_.
+
+You register through the console or the REST API, and both do the same thing: link the deployed resource to a display name and description. The description is critical because the platform's model reads it to decide when to invoke the agent...,the same way a coordinator reads a sub-agent's `description` in a multi-agent pattern. The REST body shows the linkage directly.
+
+```bash
+curl -X POST ".../engines/APP_ID/assistants/default_assistant/agents" \
+  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+  -d '{
+    "displayName" : "Order Support Agent", 
+    "description" : "Handles order status and return requests",
+    "adkAgentsDefinition" : {
+      "provisionedReasoningEngine" : {
+        "reasoningEngine" : "projects/PROJECT/locations/LOCATION/reasoningEngines/RESOURCE_ID"
+      }
+    }
+  }'
+```
+
+Two conditions extend this base case. An optional authorization block is needed only when the agent acts on Google Cloud resources on behalf of users. And if the agent runs in a different project from the app, you first grant the Gemini Enterprise service agent the Discovery Engine Service Agent role in the agent's hosting project, so the platform can reach across the project boundary.
+
+Registration makes the agent exist: sharing decides who can use it. An admin shares a registered agent from its user-permissions view, and the sharing model spans several member types:
+
+* Individual users and groups by email
+* Single identities or whole pools from Workforce Identity Federation
+* An all-users option for the entire organization
+
+Each assignment carries a role. Once shared, users see the agent in their Gemini Enterprise app and an invoke it from there. 
+
+And that completes the path: and agent you build with ADK and ground, deployed to Agent Runtime as a managed resource, and shared with the people who rely on it.
