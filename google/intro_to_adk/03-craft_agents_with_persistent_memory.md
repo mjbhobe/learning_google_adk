@@ -25,7 +25,6 @@ Context Engineering represents a necessary evolution from traditional prompt eng
 | :-- | :-- |
 | Focuses on crafting optimal, often static, system instructions | Addresses the entire payload, dynamically constructing a state-aware prompt based on the user, conversation history and external data |
 
-
 Ultimately Context Engineering involves strategically selecting, summarizing, and injecting different types of information to maximize relevance while minimizing noise. Because external systems - such as RAG databases, session stores, and memory managers - hold much of this context, your agent framework must constantly orchestrate these systems to retrieve and assemble the final prompt.
 
 The goal of context engineering is to ensure that the model has no more an dno less than the most relevant information to complete the task.
@@ -363,4 +362,185 @@ The agent uses `seo-checklist` and `blog-writer` skills for existing tasks. When
 
 ### Review Best Practice
 
-<< continue from here...>>
+As you begin to transition from monolithic prompts to dynamic skills architecture,  keep these best practices in mind to ensure your agents remain preformant, maintainable, and secure:
+
+1. **Descriptions are your API Docs**: The `description` field is what the LLM sees as L1 to decide whether to load a skill or not. For example _"SEO optimization checklist for blog posts"_ tells the agent _exactly_ when to activate. _"A helpful skill"_ does not!
+2. **Start with inline, graduate to files**: Don't over-engineer! If your skill fits in 10 lines of description, keep it inline. Move to a file-based skill when you reference documentation or want to re-use across agents.
+3. **Review generated skills like dependencies**: A meta skill's output becomes your agent's behaviour. Treat generated `SKILL.md` file like a code review. Read before you deploy.
+
+### Manage Agent Runtime skill registry
+
+Once you have designed your agent's skills and meta-skills, you need a robust environment to manage them. Skill registry serves as a secure, private, and low-latency repository for managing agent skills. Each skill is a self-contained package, including structural instructions, executable code, and documentation, designed to extend an agent's capabilities.
+
+By centralizing these skills, the Skill Registry empowers agents to dynamically discover, and load the most relevant capabilities based on user intent, thereby optimizing performance and ensuring a secure execution environment. Skill Registry introduces two top-level, standard API entities to manage lifecycle and versioning.
+
+* **Skill**: A mutable top-level entity containing metadata (such as display name, creation and updation timestamps, and labels), the default revision, and the skill's content.
+* **Skill revision**: An immutable snapshot of a specific skill version. It includes a name, a descriptionm and an immutable reference to the parent skill resource.
+
+You can perform a variety of actions in the Skill Registry, such as create, get, list, retrieve and delete skills. Here are two examples:
+
+1. **Create a skill**: To create a new skill, use the `CreateSkill` method. This operation is a long running operation.
+
+```python
+import agentplatform
+
+client = agentplatform.Client(project="PROJECT_ID", location="PROJECT_LOCATION")
+
+skill = client.skills.create(
+    skill_id = "SKILL_ID",
+    display_name = "DISPLAY_NAME",
+    description = "DESCRIPTION",
+    config = {
+        "local_path" : "SKILL_PATH",
+    },
+)
+
+print(skill.name)
+```
+
+2. **Retrieve skills**: Use the `RetrieveSkills` method to find skills using semantic search. For example, you can search for skills by describing the task you want to accomplish, such as find skills to manage cloud resources.
+
+```python
+import agentplatform
+
+client = agentplatform.client(project="PROJECT_ID", location="LOCATION")
+
+response = client.skills.retrieve(
+    query="QUERY", # such as "Find skills to manage cloud resources"
+    config = {"top_k": TOP_K},
+)
+
+for retrieved_skill in response.retrieved_skills:
+    print(retrieved_skill.name, retrieved_skill.description)
+```
+
+### Summary
+
+To effectively scale agent capabilities without overloading monolithic system prompts, you must implement progressive disclosure. The ADK `SkillToolset` achieves this by breaking knowledge loading into three distinct levels: L1 metadata, L2 instructions, L3 resources thus ensuring that context is consumed only when specifically required. By mastering the transition from inline and file-based skills to dynamic meta-skills and managing the entire lifecycle through the Agent Runtime Skills registry, you build a self-extending architecture that is modular, performant, and ready for production deployment.
+
+## Managing Data Persistence in Agent Platform
+
+To achieve true starefulness in production, your agents rely on the Agent Platform's infrastructure to manage continuity across interactions. This is accomplished through three core components that manage history, long-term facts, and resueable capabilities:
+
+1. **Agent Platform Sessions**: Agent Platform Sessions maintain history of interactions between the user and agents. Sessions provide definitive sources for long-term memory and conversation context.
+
+    You have several options to use Agent Platform Sessions:
+
+    * **Agent Development Kit**: Once you deploy your ADK agent to Gemini Enterprise Agent Platform, session management is handled automatically.
+    * **API Calls**: You can make direct API calls to Agent Platform sessions if you don't want to use the ADK.
+
+2. **Agent Platform Memory Bank**: Agent platform memory bank lets you dynamically generate long-term memories based on conversations between the user and your agent. These memories are personalized information that persists across multiple sessions, enabling your agent to adapt and personalize responses for context and continuity.
+
+    Memory bank includes the following features:
+
+    * **Memory Generation**: Create, refine, and manage memories using a large language model.
+    * **Managed storage and retrieval**: Benefit from fully managed, pesistent, and accessible memory store.
+
+3. **Agent Platform Skills Registry**: Skill Registry serves as a secure, private, and low-latency repository for managing agent skills. Each skill is a self-contained package, including structural instructions, executable code, and documentation, designed to extend and agent's capabilities.
+
+    By centralizing these skills, Skill Registry empowers agents to dynamically discover and load the most relevant capabilities based on user intent, thereby optimizing peformance and ensuring a secure execution environment.
+
+### Generate Memories from stores sessions
+
+The Agent Platform Memory Bank can be used natively with Agent Platform Sessions to generate memories from stores sessions using the following process:
+
+<div align="center">
+<img src="images/generate_memories_from_stored_sessions.png" alt="Generate Memories from Stored Sessions"/>
+</div>
+
+1. **Retrieve Memories**: As the user interacts, the agent retrieves saved memories. It can use simple retrieval for all memories, or similarity search for relevant ones, and insert them into the active prompt.
+2. **CreateSession**: Create a new session at the start of a conversation to scope the agent's history, storing messages as `SessionEvents`. A user ID is required so extracted memories can be mapped to the user.
+3. **ListEvents**: As the user interacts with the agent, the agent retrieves the active conversation history from the session.
+4. **AppendEvent**: As the user interacts, events (user messages, agent responses, and tool actions) are uploaded to the session. This persists history and creates a record used to generate memory.
+5. **Generate memories Extract, merge**: At a specified interval (e.g. end of a turn), the agent triggers memory generation. Facts are automatically extracted from the conversation history, making them available for current and future sessions.
+6. **Create Memory**: The agent writes memories directly to the Memory bank. Use this "memory-as-a-tool" approach when you want the agent to have more control over exactly what facts are extracted and saved.
+
+### Run ADK Agents in Agent Runtime
+
+By now, you should be familiar with the concept of sessions and memory, along with strategies needed to optimize them. Agent Runtime is the infrastructure where this data actually lives and is managed in a production environment.
+
+At its core, Agent Runtime is a set of services that enables developers to deploy, manage, and scale AI agents in production. By managing the complex infrastructure required to scale agents in production, it allows you to focus on creating applications.
+
+To support your development cycle, Agent Runtime offers the following services that you can use individually or in combination:
+
+1. **Managed Deployment and Scaling**: Deploy and scale agents with runtime and end-to-end management capabilities.
+2. **Custom Container Images**: Customize the agent's container image with build-time installation scripts for system dependencies.
+3. **Integrated resource allocation**: Leverage storage and compute resources associated with Agent Runtime.
+
+Following is a standard workflow for building and Agent on Agent Runtime:
+
+1. Setup your Google Project and install the latest version of the Agent Platform SDK for Python.
+2. Develop the Agent that can be deployed to Agent Runtime.
+3. Deploy the agent on Agent Runtime managed runtime.
+4. Query the agent by sending API request.
+5. Manage and delete the agents that you have deployed to Agent Runtime.
+
+### Manage Agent State
+
+As shown in the architecture diagram, data persistence within this runtime environment relies heavily on 3 platform features: Memory Bank, Sessions and Skills Registry.
+
+<div align="center">
+<img src="images/agent_platform.png" alt="Agent Platform"/>
+</div>
+
+### Summary
+
+To scale stateful agents in a production environment you rely on Agent Runtime to manage the underlying infrastructure. By leveraging Agent Platform sessions to track immediate conversation history and Agent Platform Memory Bank to extract and store long-term facts, you create a contiinuous loop that allows your agent to learn, adapt, and personalize responses across multiple interactions.
+
+
+## Maintain History of agents interactions with Sessions
+
+Building stateful agents requires effectively managing information across multiple interactions. Becaue production environments are inherently stateless, you must persistently store conversation data and reconstruct the necessary context for every turn.
+
+In this section, we'll explore the fundamentals of session management, which serves as the definitive container for active chat threads. We'll examine how to structure events - the chronological order of interactions - and how to utilize session state as a dynamic scratchpad for tracking user preferences and task progress. We'll also discover how different architectural patterns for multi-agent systems dictate communication, and learn how to leverage dedicated services to handle the lifecycle of sessions - from creation, persistance to cleanup.
+
+### What is a session?
+
+The foundational element of context engineering is the Session. It encapsulated the immediate dialog history and working memory for a single, continuous conversation. Each session is a self-contained record that is tied to a specific user.
+
+The Session allows the agent to maintain context and provide coherent responses within the bounds of a single conversation. A user can have multiple sessions, but each oen functions as a distinct, disconnected log of a specific interaction. To better relate this to an actual experience, picture your iteraction with Google Gemini (the web chat application) - in the left column, you can save each "chat" separately. This "chat" represents a separate Session.
+
+Every Session contains two key components:
+
+1. **Events (chronological history)**: These are the building blocks of the conversation. Commmon types of events include _user input_ (message from user), _agent responses_, _tool calls_ (the agent's decision to us an external tool or API), or _tool outputs_ (the data returned from a tool call), which the agent uses to continue its reasoning.
+2. **State**: Beyond the chat history, a session often includes a _state_ - a structured "working memory" or scratchpad. It is a dynamic, serializable key-value dictionary (dict or Map) where agents and tools can store, read, modify, and pass structured values across execution loops. For example, if an agent is collecting a user's food order, checking a stock portfolio, or managing a shopping cart, it doesn't need to re-read the entire chat transcript to find out what items are selected. It simply looks at `session.state["cart"]`.
+
+As the conversation progresses, the Agent will append events to the session. Additionally, it may mutate the state based on the logic in the agent.
+
+### Structure Events for the API
+
+To illustrate how this translates into code, the structure of events is analogous to the list of content objects passed to the Gemini API. This means they share the same format: each item represents one turn - or one event - in the conversation.
+
+Specifically an event is broken down into:
+
+* **Role**: Defines who is speaking ("user" or "model")
+* **Parts**: Defines the actual content of the message (text, images, tool calls etc.)
+
+Here is an example of how a conversation with multiple turns is formatted using these components.
+
+```python
+contents = [
+    {
+        "role" : "user",
+        "parts" : [{"text" : "What is the capital of France?"}]
+    },
+    {
+        "role" : "model",
+        "parts" : [{"text" : "The capital of France is Paris"}]
+    }
+]
+
+response = client.models.generate_content(
+    model="gemini-2.5-flash",
+    contents = contents
+)
+```
+
+To make a conversation with multiple turns work, the full contents list must be sent every single time. This happens because a production agent's execution environment is typically stateless, meaning it retains no information after request is completed. Consequently, its conversation history must be saved to persistent storage to maintain a continuous user experience.
+
+While in-memory storage is suitable for development, production applications should leverage robust databases to reliably store and manage sessions. For example, you can store conversation history in managed solutions like Agent Platform Sessions.
+
+### Summary
+
+A session acts as a definative container for a single conversation, comprising the chronological event history and the agent's working memory (state. Because production environments are inherently stateless, you must persistently store this session data and pass the full conversation history to the model with every turn to maintain a continuous user experience.
+
