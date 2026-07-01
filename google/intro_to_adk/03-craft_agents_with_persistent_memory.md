@@ -27,7 +27,7 @@ Context Engineering represents a necessary evolution from traditional prompt eng
 
 Ultimately Context Engineering involves strategically selecting, summarizing, and injecting different types of information to maximize relevance while minimizing noise. Because external systems - such as RAG databases, session stores, and memory managers - hold much of this context, your agent framework must constantly orchestrate these systems to retrieve and assemble the final prompt.
 
-The goal of context engineering is to ensure that the model has no more an dno less than the most relevant information to complete the task.
+The goal of context engineering is to ensure that the model has no more and no less than the most relevant information to complete the task.
 
 ### Analyze the anatomy of Context
 
