@@ -37,7 +37,7 @@ async def main():
         My favourite holiday destinations are Goa, Singapore and Spain.
         I like to play cricket and football.
         My favourite cricket team is, of course, India followed closely by Australia.
-        My favourite IPL team is Mumbai Indians and RCB.
+        My favourite IPL teams are Mumbai Indians and RCB, and you can't beat Rohit, Kohli and Bumrah!
         My favourite football club is Chelsea FC followed closely by Barcelona
         My favourite football teams are Argentina, France and Spain.
         My favorite food is Lebanese - I adore kababs & gyros.
