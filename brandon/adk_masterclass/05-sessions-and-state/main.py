@@ -33,24 +33,26 @@ async def main():
     initial_state = {
         "user_name": "Manish Bhobe",
         "user_preferences": """
-        I am from India. 
-        My favourite holiday destinations are Goa, Singapore and Spain.
-        I like to play cricket and football.
-        My favourite cricket team is, of course, India followed closely by Australia.
-        My favourite IPL teams are Mumbai Indians and RCB, and you can't beat Rohit, Kohli and Bumrah!
-        My favourite football club is Chelsea FC followed closely by Barcelona
-        My favourite football teams are Argentina, France and Spain.
-        My favorite food is Lebanese - I adore kababs & gyros.
-        My favorite TV show is Breaking Bad.
-        I love to program Python and get into deep discussions around Agentic AI.
-        My favourite Agentic AI Frameworks are Google ADK, LangChain and LangGraph
-    """,
+            I am from India. 
+            My favourite holiday destinations are Goa, Singapore and Spain.
+            I like to play cricket and football.
+            My favourite cricket team is, of course, India followed closely by Australia.
+            My favourite IPL teams are Mumbai Indians and RCB, and you can't beat Rohit, Kohli and Bumrah!
+            My favourite football club is Chelsea FC followed closely by Barcelona
+            My favourite football teams are Argentina, France and Spain.
+            My favorite food is Lebanese - I adore kababs & gyros.
+            My favorite TV show is Breaking Bad.
+            I love to program Python and get into deep discussions around Agentic AI.
+            My favourite Agentic AI Frameworks are Google ADK, LangChain and LangGraph
+        """,
     }
 
     my_session = await session_service.create_session(
         app_name=app_name,
         user_id=user_id,
         session_id=session_id,
+        # here is where I assign an initial session state
+        # which gets "passed down" to my Agent(s)
         state=initial_state,
     )
 
