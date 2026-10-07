@@ -22,7 +22,7 @@ Select the ADK of your task required one or more of the following:
 | **Multi-agent Collaboration**<br/>(or, Orchestration & Collaboration) | Specialized agents work together on a large problem |
 | **Production Operations**<br/>(or, Production Reliability) | The system handles observability, evaluation, and deployment at scale. |
 
-To illistrate the technical requirements, consider a production-grade customer support system configured to manage billing anamolies, order tracking, and returns. This domain exemplifies the core operational challenges of the framework through several key patterns:
+To illustrate the technical requirements, consider a production-grade customer support system configured to manage billing anomalies, order tracking, and returns. This domain exemplifies the core operational challenges of the framework through several key patterns:
 
 | Feature | Description |
 | :-- | :-- |
