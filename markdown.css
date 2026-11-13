@@ -12,52 +12,61 @@ body {
 /* code listings */
 code {
     font-family:
+        /* My favourite */
+        "The Sans Mono-",
         /* Windows 6+ */
         Consolas,
         /* macOS 10.10+ */
-        SF Mono,
+        "SF Mono",
         /* Android 4+ */
-        Roboto Mono,
+        "Roboto Mono",
         /* Ubuntu 10.10+ */
-        Ubuntu Monospace,
+        "Ubuntu Monospace",
         /* KDE Plasma 5+ */
-        Noto Mono,
+        "Noto Mono",
         /* KDE Plasma 4+ */
-        Oxygen Mono,
+        "Oxygen Mono",
         /* Linux/OpenOffice fallback */
-        Liberation Mono,
+        "Liberation Mono",
         /* fallback */
         monospace;
-    font-size: 14px;
+    font-size: 14.6px;
+    line-height: 20px;
 }
 
 pre * {
     font-family:
+        /* My favourite */
+        "The Sans Mono-",
         /* Windows 6+ */
         Consolas,
         /* macOS 10.10+ */
-        SF Mono,
+        "SF Mono",
         /* Android 4+ */
-        Roboto Mono,
+        "Roboto Mono",
         /* Ubuntu 10.10+ */
-        Ubuntu Monospace,
+        "Ubuntu Monospace",
         /* KDE Plasma 5+ */
-        Noto Mono,
+        "Noto Mono",
         /* KDE Plasma 4+ */
-        Oxygen Mono,
+        "Oxygen Mono",
         /* Linux/OpenOffice fallback */
-        Liberation Mono,
+        "Liberation Mono",
         /* fallback */
         monospace;
-    font-size: 14px;
+    font-size: 14.6px;
     line-height: 20px;
 }
 
 h1,
-h2,
+h2 {
+    color: #569CD6; /* cornflowerblue; */
+    font-family: "SF Pro Display", Arvo, Roboto, Arial, Calibri, Helvetica, sans-serif;
+}
+
 h3,
 h4,
 h5 {
-    color: cornflowerblue;
-    font-family: Arvo, Roboto, Arial Calibri, Helvetica, sans-serif;
+    color: #569CD6; /* cornflowerblue; */
+    font-family: "Crimson Pro", Arvo, Roboto, Arial, Calibri, Helvetica, sans-serif;
 }
