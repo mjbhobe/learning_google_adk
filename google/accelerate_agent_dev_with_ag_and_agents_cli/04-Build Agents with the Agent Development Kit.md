@@ -368,4 +368,570 @@ In this lesson, you'll discover why breaking a task across multiple specialized 
 
 ADK gives you two sets of tools: Template workflow agents for well-defined sequential, parallel, and iterative patterns, and ADK 2.0's graph-based and collaborative workflow APIs for workflows that need conditional routing, non-linear flow, or mixed AI-and-code execution. You'll explore both toolsets, starting with multi-agent systems and moving through the complete ADK 2.0 orchestration toolkit.
 
-<< Continue from here >>
+### Why multi-agent systems matter
+
+A single Agent (the model-backed agent class in ADK, internally called `LlmAgent`) is effective when a task requires only one context window and a continuous reasoning process. However, this approach becomes ineffective in three common situations:
+
+**Context window limits**
+
+A model can only reason over so much text at once. A customer support agent that handles billing, shipping, returns, product questions, and account management needs an enormous instruction, a large set of tools, and all the relevant history in context at the same time. As the instruction and tool list grow, the model's instruction-following reliability drops.
+
+**Task specialization**
+
+Different tasks have different tool requirements and different behavioral constraints. A billing agent needs access to payment systems and should follow financial compliance rules. A returns agent needs access to the logistics system and should follow the return policy. Combining both into one agent means both sets of tools are always in scope, which increases the chance of the model calling the wrong tool for the wrong task.
+
+
+**Parallelism**
+
+Some tasks are independent of each other and can run at the same time. If a system needs to check inventory availability, look up current promotions, and verify account standing before presenting an offer, those three checks don't depend on each other. Running them sequentially wastes time; a multi-agent system runs them concurrently.
+
+The solution is to break the problem into specialized agents, each with a narrow instruction, a small tool set, and a clear scope. A workflow controls how and when they run. Now that you understand the conceptual framework, let’s look at the concrete tools ADK provides to implement these patterns.
+
+### Template workflow agents and choosing a pattern
+
+ADK provides three template workflow agents for the most common orchestration shapes. Each controls execution deterministically (the order and structure are fixed in code, not decided by a model at runtime), which makes behavior predictable and easy to test.
+
+<div class="md-tabs">
+  <input type="radio" name="adk-workflow-classes" id="tab-adk-workflows-1" checked>
+  <label for="tab-adk-workflows-1">SequentialAgent</label>
+  <input type="radio" name="adk-workflow-classes" id="tab-adk-workflows-2">
+  <label for="tab-adk-workflows-2">ParallelAgent</label>
+  <input type="radio" name="adk-workflow-classes" id="tab-adk-workflows-3">
+  <label for="tab-adk-workflows-3">LoopAgent</label>
+  <div class="tab-panel">  
+    <p><code>SequentialAgent</code> runs sub-agents one after another in a fixed order. Each sub-agent completes before the next starts. All sub-agents share the same invocation context, so data written to session state by one agent is available to the next.
+
+```python
+from google.adk.agents.sequential_agent import SequentialAgent  
+
+order_pipeline = SequentialAgent(     
+      name="order_pipeline",     
+      sub_agents=[validate_agent, pricing_agent, confirm_agent],
+
+)
+```
+  Use <code>SequentialAgent</code> when tasks have strict dependencies: Each step needs the previous step's output and order matters.</p>
+  </div>
+  <div class="tab-panel">
+    <p>ParallelAgent runs multiple sub-agents concurrently. Sub-agents execute independently and don't share state with each other during execution. Design them to write their results to individual state keys, and use a sequential step after to read and synthesize those results.
+
+```python
+from google.adk.agents.parallel_agent import ParallelAgent  
+
+lookup_parallel = ParallelAgent(     
+
+       name="account_lookup",     
+
+       sub_agents=[inventory_agent, promotions_agent, account_agent],
+
+)
+```
+Use <code>ParallelAgent</code> when tasks are independent of each other and latency matters.</p>
+  </div>
+  <div class="tab-panel">
+    <p><code>LoopAgent</code> runs its sub-agents repeatedly until a termination condition is met.
+
+Always set `max_iterations` as a safety ceiling: It prevents infinite loops if the exit condition is never triggered.
+
+One of the sub-agents signals termination by calling `exit_loop()`.
+
+```python
+from google.adk.agents.loop_agent import LoopAgent  
+
+refine_loop = LoopAgent(     
+     name="response_refiner",     
+     sub_agents=[draft_agent, quality_agent],     
+     max_iterations=5,
+)
+```
+
+Use <code>LoopAgent</code> for iterative refinement: Any pattern where "draft, evaluate, improve" repeats until a quality threshold is met.
+    </p>
+  </div>
+</div>
+
+The following diagram shows a decision framework for selecting the right orchestration tool. 
+
+![Decision Framework for Orchestration](images/decision_framework_for_orchestration.png)
+
+
+Four questions narrow the choice:
+
+1. **Does the order of tasks matter?** Use `SequentialAgent`. If you also need conditional branching or non-linear flow, use ADK 2.0's Workflow.
+2. **Are the tasks independent?** Use `ParallelAgent`. Plan a sequential gather step after to synthesize results.
+3. **Does the output need to improve over multiple iterations?** Use `LoopAgent`. Set `max_iterations` defensively.
+4. **Does routing require reasoning?** Use an `Agent` with `sub_agents`, or ADK 2.0's `Workflow` for explicit graph-based routing, covered in the next topics.
+
+### Why ADK 2.0 matters
+
+Template workflow agents are the right tool when your workflow fits a well-defined shape: ordered steps, concurrent independent tasks, or iterative refinement. Each handles one of those shapes cleanly, and the deterministic execution is easy to test and debug.
+
+Some workflows don't fit those shapes. Consider a support routing workflow: classify the incoming request, then route to the right handler for billing, shipping, or returns. If the request spans multiple categories, run the relevant handlers in parallel and join their results. If a handler needs clarification before it can proceed, pause and wait. That workflow is conditional, non-linear, and mixed. It can't be expressed cleanly as a single `SequentialAgent`, `ParallelAgent`, or `LoopAgent`.
+
+ADK 2.0 adds two capabilities built for exactly these cases:
+
+1. **Graph-powered workflows**
+
+    Graph-powered workflows introduce a new `Workflow` class that models execution as an explicit directed graph. Nodes are agents, functions, or tools. Edges connect them and carry routing logic.
+
+    You can express sequential, parallel, conditional, and cyclical flows in a single graph, mixing AI-driven nodes with deterministic code nodes wherever each is appropriate.
+
+2. **Task-based collaboration**
+
+    Task-based collaboration introduces a `mode` parameter on sub-agents that gives you precise control over how a coordinator agent delegates to specialists.
+
+    The three modes, `chat`, `task`, and `single_turn`, differ in whether the specialist can interact with the user, whether the coordinator gets a structured result back, and whether the delegation can run in parallel with other delegations.
+
+Together, these two capabilities let you build workflows that are both expressive and explicit. With that high-level understanding of why ADK 2.0 is so powerful, let’s get hands-on and see how to build these graph workflows.
+
+### Building graph workflows
+
+A graph workflow in ADK 2.0 starts with the `Workflow` class. You give it a name and an `edges` list that defines the execution graph.
+
+```python
+from google.adk import Agent, Workflow, Event
+
+root_agent = Workflow(
+    name="support_workflow",
+    edges=[
+        ("START", classifier, router),
+    ]
+)
+```
+
+* *odes are the units of work. A node can be an `Agent` (uses a model for reasoning), a Python function (runs deterministic code), a tool, or a nested `Workflow` object. Standard Python functions are automatically treated as nodes. ADK wraps the return value in an `Event` (a structured object that carries the node's output and an optional routing signal). ADK also injects context variables if the function signature declares them, and validates inputs against Pydantic type hints if you provide them.
+* Edges define the connections. The `edges` list contains tuples. A tuple like (`"START"`, `node_a`, `node_b`, `node_c`) creates a sequential chain: the workflow starts at `node_a`, passes the output to `node_b`, and then to `node_c`. `"START"` is the reserved entry point. **Unlike LangGraph, there is no `"END"` node!**
+* Conditional routing works through `Event(route=...)`. A router function inspects its input and returns an Event with a route string. The edges dict maps that route string to the target node.
+
+```python
+from google.adk import Agent, Workflow, Event
+
+classifier = Agent(
+    name="classifier",
+    model="gemini-flash-latest",
+    instruction="Classify the customer message into exactly one of: BILLING, SHIPPING, or RETURNS.",
+    output_schema=str,
+)
+
+def router(node_input: str):
+    category = node_input.strip()
+    return Event(route=category)
+
+root_agent = Workflow(
+    name="support_workflow",
+    edges=[
+        ("START", classifier, router),
+        (router, {
+            "BILLING":  billing_agent,
+            "SHIPPING": shipping_agent,
+            "RETURNS":  returns_agent,
+        }),
+    ]
+)
+```
+
+Here, `classifier` is an `Agent` configured with `output_schema=str` that reads the customer message and outputs a category label string. router is a plain function that reads that label and emits the appropriate route. The edges dict maps each route to the correct specialist agent. The workflow executes classifier, then router, then exactly one of the three specialist agents based on the route.
+
+* Parallel fan-out requires no route tags. The distinction from conditional routing is in what the source node returns: when a node returns a plain value (not an `Event(route=...)`), all outgoing edges from that node run concurrently as fan-out. When you list the same source node pointing to multiple targets without route strings, the workflow runs those targets concurrently.
+
+```python
+from google.adk import Workflow, JoinNode
+
+join = JoinNode(name="join")
+
+root_agent = Workflow(
+    name="multi_category_workflow",
+    edges=[
+        ("START", classifier, router),
+        (router, billing_agent),
+        (router, shipping_agent),
+        (router, returns_agent),
+        (billing_agent,  join),
+        (shipping_agent, join),
+        (returns_agent,  join),
+        (join, synthesizer),
+    ]
+)
+```
+
+* `JoinNode` collects the outputs of all incoming branches and passes them together to the next node. In this example, when the classifier determines the request spans multiple categories, all three agents run in parallel, their outputs are joined, and `synthesizer` assembles the final response.
+* Data flows between nodes through Event objects. A node's output becomes the next node's `node_input`. For structured data, add `input_schema` and `output_schema` to an Agent using Pydantic models. Reference upstream fields in an agent's instruction string using `{ClassName.property}` syntax. ADK substitutes the matching field value from the upstream node's output at runtime. Keep large data (documents, images, query results) in ADK artifacts or an external store rather than in event payloads.
+
+Once you've defined your execution graph, you'll need a way to manage how your agents communicate and delegate work. That’s where task-based collaboration comes in.
+
+The following diagram illustrates a multi-category workflow where a classifier and router determine task routing. As the request can span multiple categories, the router triggers parallel execution of the billing, shipping, and returns agents. The outputs are collected by a JoinNode and sent to a synthesizer agent.
+
+![Multi-category Workflow](images/multi_category_workflow.png)
+
+### Task-based collaboration
+
+Graph workflows give you explicit, deterministic control over execution paths. Task-based collaboration gives you a complementary capability: An `Agent` coordinator that uses model reasoning to decide which specialists to call, and three delegation modes that control exactly what each delegation looks like.
+
+To set up a collaborative workflow, pass `sub_agents` to the coordinator `Agent`. ADK automatically generates a task request tool for each sub-agent (for example, `request_task_billing_agent`) and makes those tools available to the coordinator's model. The coordinator reads the user's request and decides which tools to call.
+
+```python
+from google.adk import Agent
+
+support_coordinator = Agent(
+    name="support_coordinator",
+    model="gemini-flash-latest",
+    description="Routes customer support requests to the right specialist.",
+    instruction="""You coordinate customer support requests.
+Delegate billing questions to billing_agent, order tracking to shipping_agent,
+and return requests to returns_agent.""",
+    sub_agents=[billing_agent, shipping_agent, returns_agent],
+)
+```
+
+The `mode` parameter on each sub-agent controls the delegation behavior. There are three modes:
+
+<div class="md-tabs">
+  <input type="radio" name="mode-params" id="tab-mode-params-1" checked>
+  <label for="tab-mode-params-1">Chat Mode</label>
+  <input type="radio" name="mode-params" id="tab-mode-params-2">
+  <label for="tab-mode-params-2">Task Mode</label>
+  <input type="radio" name="mode-params" id="tab-mode-params-3">
+  <label for="tab-mode-params-3">Single Turn Mode</label>
+  <div class="tab-panel">  
+    <p>Chat mode (the default; omit `mode` to use it) transfers the entire conversation to the specialist. The specialist takes over exactly as if the user were talking to it directly. Control only returns to the coordinator through an explicit transfer call.<br/><br/>This is the right mode when the specialist needs a full, open-ended conversation with the user. It's the least structured mode and the hardest to chain into downstream processing.</p>
+  </div>
+  <div class="tab-panel">
+    <p>Task mode is interactive delegation with a defined scope. The coordinator assigns the task, the specialist works with the user to complete it, asking clarifying questions if needed, and then automatically returns a structured result to the coordinator.<br/><br/>Task mode runs sequentially because user interaction prevents parallel execution.
+
+```python
+returns_agent = Agent(
+  name="returns_agent",
+  model="gemini-flash-latest",
+  mode="task",
+  input_schema=ReturnRequest,
+  output_schema=ReturnResult,
+  description="Processes customer return requests.",
+  instruction="Gather the order ID and reason for return. Confirm the return policy applies. Return a structured ReturnResult.",
+  tools=[lookup_order, check_return_policy, initiate_return],
+)
+```
+   </p>
+  </div>
+  <div class="tab-panel">
+    <p>Single-turn mode is fully autonomous delegation. The coordinator assigns work that the specialist completes with no user interaction. The specialist does its job and returns a structured result. Because there's no user interaction, multiple single-turn agents can run in parallel.
+
+```python
+billing_agent = Agent(
+  name="billing_agent",     
+  model="gemini-flash-latest",      
+  mode="single_turn",     
+  output_schema=BillingResult,     
+  description="Retrieves account balance and payment history.",     
+  tools=[lookup_account, list_invoices], )  
+
+shipping_agent = Agent(     
+  name="shipping_agent",     
+  model="gemini-flash-latest",     
+  mode="single_turn",     
+  output_schema=ShippingResult,     
+  description="Looks up order status and estimated delivery.",     
+  tools=[track_order, get_delivery_estimate],
+)
+```
+  </p>
+  </div>
+</div>
+
+Consider a customer who asks why their account shows a charge for an order that hasn't arrived. The coordinator calls `request_task_billing_agent` and `request_task_shipping_agent` in the same turn. Because both agents use `mode="single_turn"`, ADK runs them in parallel. Both results return to the coordinator, which synthesizes a response that addresses both the payment and delivery questions at once. This parallelism applies only to single_turn agents; task-mode agents run sequentially because they may need to interact with the user.
+
+The following diagram illustrates the delegation flow: User to coordinator, coordinator to specialists using appropriate modes, specialists returning structured results, coordinator synthesizing the response.
+
+![Delegation Flow](images/delegation_flow.png)
+
+Three constraints govern task-based collaboration:
+
+1. First, task-mode and single-turn sub-agents must be leaf nodes: They can't have their own `sub_agents`.
+2. Second, each delegation is saved as a dedicated branch in the session, giving you a full audit trail of what each specialist did.
+3. Third, context is fully isolated in both directions: The specialist sees only what the coordinator passed to it, and the coordinator sees only the tool-call record and the structured tool response, not the specialist's internal reasoning steps.
+
+This bidirectional isolation makes each specialist independently testable and prevents one agent's reasoning from leaking into another's context.
+
+> [!Note]
+> **Summary of ADK 2.0 capabilities**
+>
+> Graph-based workflows capture complex execution logic (conditional, parallel, cyclical) in an explicit, readable structure. Meanwhile, task-based collaboration enables precise delegation, ensuring specialists operate with exactly the right interaction scope for each assignment. Used together, these features cover both structured pipelines and dynamic, goal-driven workloads within a single coherent framework. However, a workflow is only as trustworthy as the data its agents answer from.
+
+## Grounding and enterprise data integration
+
+Previously, you built agents and orchestrated them into multi-agent systems. Those systems are only as trustworthy as the data they use. In this lesson, you'll learn how to ground an agent's answers in sources you control. You'll also route each query to the right knowledge store, and connect an agent to external data through MCP.
+
+An agent that generates fluent text is easy to build. Building an agent that answers only from verified sources and reaches the right store for each question requires deliberate design. This lesson covers the grounding tools, retrieval patterns, and integration options that get you there.
+
+### Grounding and knowledge routing
+
+A language model's parametric memory stops updating after training ends. It was never trained on your organization's private data. When an agent answers from memory instead of a verified source, it can produce confident responses that are outdated, wrong, or fabricated. Design your agent to retrieve from known sources for all factual claims, ensuring accuracy and reliability.
+
+> [!Note]
+>
+> Grounding means anchoring every response to content retrieved at query time from a source you control.
+
+The Agent Development Kit (ADK) provides two built-in grounding tools. The `google_search` tool connects the agent to the live public web, for current events, prices, and other data outside the model's training window.
+
+```python
+from google.adk.tools import google_search
+
+agent = Agent(
+    name="research_agent",
+    model="gemini-flash-latest",
+    instruction="Answer questions using Google Search. Always cite sources.",
+    tools=[google_search],
+)
+```
+
+`VertexAiSearchTool` connects the agent to a _private Agent Search datastore_: Your indexed internal documents, wikis, and policy files. The agent searches that corpus and cites what it found.
+
+```python
+from google.adk.tools import VertexAiSearchTool
+
+DATASTORE_ID = "projects/PROJECT/locations/global/collections/default_collection/dataStores/DATASTORE"
+
+agent = Agent(
+    name="internal_search_agent",
+    model="gemini-flash-latest",
+    instruction="Answer using internal document search. Always cite sources.",
+    tools=[VertexAiSearchTool(data_store_id=DATASTORE_ID)],
+)
+```
+
+`VertexAiSearchTool` runs on Google Cloud and needs `GOOGLE_GENAI_USE_VERTEXAI=TRUE` along with your project and location settings. Google AI Studio is not supported. Both tools return grounding metadata that links each statement back to its source, so you can cite or audit any claim. For structured, transactional data, use a custom function tool backed by BigQuery, a relational database, or a REST API. That data has a system of record, so the agent should query it directly rather than approximate it from memory.
+
+The design decision that ties these together is routing: Which source does the agent consult for which query? Left alone, the model blends parametric memory with retrieved content unpredictably. You prevent that in the instruction. Name the tool, name the query type, and prohibit answering from memory.
+
+```python
+instruction = """
+For internal policies or documentation: use VertexAiSearchTool.
+For current events or public information: use google_search.
+For account, order, or transaction data: use sql_query_tool.
+Do not answer a factual question from memory if a tool can supply the answer.
+If no tool returns a result, say so rather than estimating.
+"""
+```
+
+The following diagram shows knowledge routing: a single query directed by intent to the right retrieval path, with every path feeding one grounded response.
+
+![Knowledge Routing](images/knowledge_routing.png)
+
+When one agent handles many query types, a single instruction grows unwieldy. Extract the routing logic into a dedicated routing sub-agent with a concise `description`. Route to it with `transfer_to_agent`, ADK's mechanism for passing control between agents in a pipeline. Each specialist then focuses only on retrieval from its own source. This keeps routing explicit, testable, and maintainable as the system grows.
+
+### Structured and unstructured data integration
+
+Enterprise pipelines draw from two kinds of knowledge.
+
+1. **Structured data:** For example, SQL databases, CRM records, and transactional stores. Answers the "what": Precise figures, counts, and aggregates
+2. **Unstructured data:** For example, PDFs, policy documents, and wikis. Answers the "why": The context and rationale behind those numbers.
+
+Each has its own failure mode, and knowing which one threatens a path tells you what to guard against:
+
+* **Structured retrieval risks schema hallucination:** The model generates SQL against columns or table aliases that don't exist. 
+* **Unstructured retrieval risks semantic drift:** Retrieved passages are topically close but not actually relevant to the question.
+
+For structured data, a custom function tool is the most direct path. It wraps the query logic in a testable Python function, calls BigQuery or a database, and adds explicit error handling and a `ToolContext` authorization check. When SQL queries keep hallucinating schema, ground the generation. Store your schema descriptions and approved query patterns in a searchable corpus. Before generating SQL, retrieve the relevant fragment and inject it into the prompt. This is two layers in sequence, where unstructured retrieval grounds a structured execution, not two parallel paths.
+
+For unstructured retrieval from a private corpus, the grounding tools from the previous topic are the right path. Use `VertexAiSearchTool` for managed indexing and search. Use a custom Vector Search 2.0 function tool when you need hybrid semantic-plus-keyword search, query-time metadata filtering, or full control over ranking. It wraps the `vectorsearch` API directly.
+
+The multi-source pattern combines all three by routing query intent to the right store.
+
+```python
+retrieval_router = Agent(
+    name="retrieval_router",
+    model="gemini-flash-latest",
+    instruction="""
+    For structured records (orders, accounts, inventory): use sql_query_tool.
+    For policies or procedures: use search_documents_tool.
+    For questions needing both: call both and synthesize.
+    Do not answer from memory. If neither returns a result, say so.
+    """,
+    tools=[sql_query_tool, search_documents_tool],
+)
+```
+
+When you retrieve from several knowledge bases at once, give each store its own custom tool rather than a shared configuration. A policy corpus and a product catalog each get their own function. This keeps the retrieval paths independent, separately tunable, and easy to monitor.
+
+### Connecting external tools and data with MCP
+
+So far, the tools you've explored have been Python functions you write. The Model Context Protocol (MCP) is an open standard that lets an agent use tools hosted by an external server, without you reimplementing each one. ADK works in both directions. It can act as an MCP client that consumes a server's tools, or as an MCP server that exposes its own tools to other clients. The client direction is the common one.
+
+`McpToolset` is the connection. You add it to an agent's `tools` list, and it discovers the server's tools, converts them to ADK tools, and proxies calls.
+
+```python
+from google.adk.tools.mcp_tool import McpToolset
+from google.adk.tools.mcp_tool.mcp_session_manager import StdioConnectionParams
+from mcp import StdioServerParameters
+
+toolset = McpToolset(
+    connection_params=StdioConnectionParams(
+        server_params=StdioServerParameters(
+            command="npx",
+            args=["-y", "@modelcontextprotocol/server-filesystem", "/data"],
+        )
+    ),
+    tool_filter=["list_directory", "read_file"],
+)
+```
+
+A server connects one of two ways.
+
+* **StdioConnectionParams:** Runs a local process and talks over standard input and output, which **suits local development and self-contained containers**.
+* **StreamableHTTPConnectionParams:** Connects to a remote server over HTTP, which suits production.
+
+The `tool_filter` parameter is your least-privilege control, as it exposes only the operations the agent needs, even when the server offers more.
+
+MCP is how you reach data stores that don't have a built-in ADK tool. **External vector databases such as Pinecone connect through MCP, as do Spanner, Bigtable, and MongoDB**. The choice between a custom function tool and an MCP integration is mostly operational. A custom tool gives you full control of the execution path. An MCP server lets you reuse an existing, MCP-compatible service without writing client code.
+
+One deployment rule matters. When an agent uses MCP tools, define the agent and its `McpToolset` synchronously in `agent.py`. An async factory function works with `adk web`, but it fails in deployed environments such as Cloud Run, GKE, and Agent Runtime.
+
+### Summary
+
+Grounding keeps answers anchored to real sources. Knowledge routing sends each query to the right store. MCP extends an agent's reach to data and tools beyond ADK's built-ins. Together, they let a multi-agent system draw on the full breadth of enterprise data while keeping every factual claim verifiable.
+
+## Deploying agents to Gemini
+
+Previously, you explored how to build agents, orchestrate them into multi-agent systems, and ground them in enterprise data. An agent delivers value only when it reaches the people who need it, running reliably without your infrastructure management.
+
+In this lesson, you'll learn how an Agent Development Kit (ADK) agent moves from source code to a managed service on Agent Runtime, and how registering it in Gemini puts it in front of users across an organization. This allows agents to run reliably at enterprise scale without manual infrastructure management. The focus is the shape of that path and the decisions along it, not a click-by-click procedure.
+
+### The Gemini platform ecosystem
+
+Gemini platform is Google Cloud's managed platform for building, deploying, governing, and optimizing AI agents. It consolidates capabilities that were previously spread across Gemini platform, Agent Builder, and Agent Engine into one platform. You'll still encounter the older names in existing documentation and tooling. Agent Runtime is the new name for the component previously called Agent Engine.
+
+The platform organizes its capabilities into four pillars:
+
+<div class="md-tabs">
+  <input type="radio" name="platform-capabilities" id="tab-plat-capab-1" checked>
+  <label for="tab-plat-capab-1">Build</label>
+  <input type="radio" name="platform-capabilities" id="tab-plat-capab-2">
+  <label for="tab-plat-capab-2">Scale</label>
+  <input type="radio" name="platform-capabilities" id="tab-plat-capab-3">
+  <label for="tab-plat-capab-3">Govern</label>
+  <input type="radio" name="platform-capabilities" id="tab-plat-capab-4">
+  <label for="tab-plat-capab-4">Optimize</label>  
+  <div class="tab-panel">  
+    <p>Where ADK lives. It's the code-first framework you've used throughout this course to define agent behavior.</p>
+  </div>
+  <div class="tab-panel">
+    <p>Where Agent Runtime lives. It's the managed service that runs your deployed agent.</p>
+  </div>
+  <div class="tab-panel">
+    <p>Includes Agent Registry, a centralized catalog of approved agents, tools, and MCP servers across an organization.</p>
+  </div>
+  <div class="tab-panel">
+    <p>Includes evaluation, observability, and simulation tooling for improving agent quality after deployment.</p>
+  </div>
+</div>
+
+Gemini is a separate product. It's the end-user web application that employees use to interact with AI agents. An agent deployed to Agent Runtime doesn't automatically appear in Gemini. You register it there explicitly, which is what this lesson covers. Registering an agent in Gemini is a separate step from adding it to Agent Registry.
+
+The following diagram illustrates how ADK sits within the Build pillar, Agent Runtime within the Scale pillar, and Agent Registry within the Govern pillar. It also shows Gemini, which is the separate end-user application where you register agents after deployment:
+
+![Where ADK Sits in Build Pillar](images/where_adk_sits_in_build_pillar.png)
+
+### Deploying with the ADK CLI and Agents CLI
+
+Agent Runtime is a fully managed service that handles scaling, cold starts, session persistence, and the network interface your agent needs to receive requests. Deploying to it creates a `reasoningEngine` resource. That resource is the deployable unit, and its path is the handle you later provide to Gemini.
+
+A multi-agent system deploys as a single unit. You deploy the agent project rooted at `root_agent`, which means the coordinator and its sub-agents together, and Agent Runtime hosts the whole tree behind one `reasoningEngine` resource. The orchestration you built in earlier lessons carries over to the deployed agent unchanged, packaged the same way `adk web` discovers it locally.
+
+**Deployment assumes a billing-enabled Google Cloud project**, the Agent Platform and Cloud Resource Manager APIs enabled, an authenticated `gcloud CLI`, and a standard ADK agent directory. The two most direct routes to Agent Runtime are CLIs. Your choice depends on the amount of infrastructure management you prefer.
+
+Standard deployment uses the ADK CLI directly. It's the right path when you already have a project configured and want direct control over deployment parameters. You target Agent Runtime with the agent_engine subcommand:
+
+```bash
+adk deploy agent_engine \
+    --project=$PROJECT_ID \
+    --region=$LOCATION_ID \
+    --display_name="Support Coordinator" \
+    support_agent
+```
+
+A successful deployment prints a resource path (`projects/PROJECT_ID/locations/LOCATION/reasoningEngines/RESOURCE_ID`). **The trailing numeric `RESOURCE_ID` is what you keep for registration**.
+
+Agents CLI deployment is the right path when you want a production-ready environment configured for you, with CI/CD pipelines and Infrastructure-as-Code through Terraform. You scaffold the project structure once, then deploy, and the result is the same `reasoningEngine` resource as the standard path. Whichever path you take, review any generated infrastructure against an organization's security standards before production.
+
+The following diagram illustrates the three-step deployment flow: Building the agent with ADK, deploying it to Agent Runtime with the ADK CLI or Agents CLI, and then registering and sharing the resulting resource in Gemini:
+
+![Three Step Deployment Flow](images/three_step_deployment_flow.png)
+
+### Configuring deployments programmatically
+
+Both CLI paths are convenience wrappers around one underlying mechanism: a programmatic call to `client.agent_engines.create()` in the Gemini platform SDK. Use the SDK directly when you need configuration control the CLIs do not expose. That might mean choosing how your code reaches Agent Runtime, or tuning how the deployed service runs.
+
+The call accepts several deployment sources beyond your local agent directory:
+
+* **An in-memory agent object:** Suited to interactive development in notebooks.
+* **Local source files or a Dockerfile:** No Cloud Storage bucket required, which suits CI/CD pipelines.
+* **A prebuilt container image from Artifact Registry:** For teams that already build and manage their own containers.
+* **A connected Git repository, through Developer Connect:** Deploys straight from a linked repo, without a local build step.
+
+A `config` dictionary on the same call shapes how the deployed service runs. It groups into a few categories:
+
+<div class="md-tabs">
+  <input type="radio" name="deployment-categories" id="tab=deploy-categ-1" checked>
+  <label for="tab=deploy-categ-1">Scaling & Resources</label>
+  <input type="radio" name="deployment-categories" id="tab=deploy-categ-2">
+  <label for="tab=deploy-categ-2">Identity & Secrets</label>
+  <input type="radio" name="deployment-categories" id="tab=deploy-categ-3">
+  <label for="tab=deploy-categ-3">Networking & Compliance</label>
+  <div class="tab-panel">  
+    <p>Instance count bounds, per-container CPU and memory, and request concurrency.</p>
+  </div>
+  <div class="tab-panel">
+    <p>A dedicated agent identity or custom service account, plus environment variables backed by Secret Manager.</p>
+  </div>
+  <div class="tab-panel">
+    <p>Private Service Connect interfaces and customer-managed encryption keys.</p>
+  </div>
+</div>
+
+Here is an example of the shape of the call:
+
+```python
+remote_agent = client.agent_engines.create(
+    agent=local_agent,
+    config={
+        "display_name": "Order Support Agent",
+        "min_instances": 1,
+        "max_instances": 10,
+        "resource_limits": {"cpu": "4", "memory": "8Gi"},
+    },
+)
+```
+
+The returned `remote_agent` wraps the same kind of `reasoningEngine` resource the CLI paths produce. `remote_agent.api_resource.name` returns its resource path, the string you carry into registration.
+
+### Registering and sharing in Gemini
+
+Registering an agent in Gemini makes it available in the web app, where an organization's users can invoke it. Registration needs the Gemini Admin role, the Discovery Engine API enabled (it powers Gemini), an existing Gemini app, and the `reasoningEngine` resource URL from deployment.
+
+One compatibility rule matters: The agent's deployment region must align with the app's location, so a us app expects a us-region and a global app accepts any.
+
+You register through the console or the REST API, and both do the same thing: link the deployed resource to a display name and a description. The description is critical because the platform's model reads it to decide when to invoke the agent, the same way a coordinator reads a sub-agent's description in the multi-agent patterns from Lesson 3. The REST body shows that linkage directly:
+
+```bash
+curl -X POST ".../engines/APP_ID/assistants/default_assistant/agents" \
+  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+  -d '{
+    "displayName": "Order Support Agent",
+    "description": "Handles order status and return requests",
+    "adkAgentDefinition": {
+      "provisionedReasoningEngine": {
+        "reasoningEngine": "projects/PROJECT/locations/LOCATION/reasoningEngines/RESOURCE_ID"
+      }
+    }
+  }'
+```
+
+Two conditions extend this base case. An optional authorization block is needed only when the agent acts on Google Cloud resources on behalf of users. And if the agent runs in a different project from the app, you first grant the Gemini service agent the Discovery Engine Service Agent role in the agent's hosting project, so the platform can reach across the project boundary.
+
+Registration makes the agent exist; sharing decides who can use it. An admin shares a registered agent from its user-permissions view, and the sharing model spans several member types:
+
+* Individual users and groups by email
+* Single identities or whole pools from Workforce Identity Federation
+* An all-users option for the entire organization
+
+Each assignment carries a role. Once shared, users see the agent in Gemini can invoke it from there. That completes the path: An agent you built and grounded in ADK, deployed to Agent Runtime as a managed resource, and shared with the people who rely on it.
+
