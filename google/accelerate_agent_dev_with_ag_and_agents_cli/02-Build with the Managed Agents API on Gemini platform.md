@@ -23,7 +23,7 @@ To do that work, an agent needs real infrastructure:
 * A way to reach a live inventory system
 * Credentials to use it
 
-For an enterprise, each of these requirements immediately raises security questions: Where does the data sit? What can the agent touch? And what can it reach on the network?
+**For an enterprise, each of these requirements immediately raises security questions:** Where does the data sit? What can the agent touch? And what can it reach on the network?
 
 This is the exact task you'll build an agent to solve in this course—and it is the primary reason the platform starts from secured infrastructure rather than from code.
 

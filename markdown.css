@@ -62,28 +62,28 @@ pre * {
 h1,
 h2 {
     color: #569CD6; /* cornflowerblue; */
-    font-family: "SF Pro Display", Arvo, Roboto, Arial, Calibri, Helvetica, sans-serif;
+    font-family: "Rethink Sans", Arvo, Roboto, Arial, Calibri, Helvetica, sans-serif;
 }
 
 h3,
 h4,
 h5 {
     color: #569CD6; /* cornflowerblue; */
-    font-family: "Crimson Pro", Arvo, Roboto, Arial, Calibri, Helvetica, sans-serif;
+    font-family: "Rethink Sans", Arvo, Roboto, Arial, Calibri, Helvetica, sans-serif;
 }
 
 h1 {
-    font-size: 22px;
+    font-size: 24px;
 }
 h2 {
-    font-size: 20px;
+    font-size: 24px;
 }
 h3 {
-    font-size: 20px;
+    font-size: 22px;
 }
 h4 {
-    font-size: 18px;
+    font-size: 20px;
 }
 h5 {
-    font-size: 16px;
+    font-size: 18px;
 }
