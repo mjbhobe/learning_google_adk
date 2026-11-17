@@ -1,0 +1,24 @@
+<div class="md-tabs">
+  <!-- Tab 1 (Default selected) -->
+  <input type="radio" name="UNIQUE_GROUP_NAME" id="tab-topic-one" checked>
+  <label for="tab-topic-one">First Tab</label>
+
+  <!-- Tab 2 -->
+  <input type="radio" name="UNIQUE_GROUP_NAME" id="tab-topic-two">
+  <label for="tab-topic-two">Second Tab</label>
+
+  <!-- Tab 3 (Optional: remove if only 2 tabs) -->
+  <input type="radio" name="UNIQUE_GROUP_NAME" id="tab-topic-three">
+  <label for="tab-topic-three">Third Tab</label>
+
+  <!-- Tab Panels (match the order of the inputs above) -->
+  <div class="tab-panel">
+    <p>Content for tab 1.</p>
+  </div>
+  <div class="tab-panel">
+    <p>Content for tab 2.</p>
+  </div>
+  <div class="tab-panel">
+    <p>Content for tab 3.</p>
+  </div>
+</div>

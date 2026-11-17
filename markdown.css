@@ -71,3 +71,19 @@ h5 {
     color: #569CD6; /* cornflowerblue; */
     font-family: "Crimson Pro", Arvo, Roboto, Arial, Calibri, Helvetica, sans-serif;
 }
+
+h1 {
+    font-size: 22px;
+}
+h2 {
+    font-size: 20px;
+}
+h3 {
+    font-size: 20px;
+}
+h4 {
+    font-size: 18px;
+}
+h5 {
+    font-size: 16px;
+}
