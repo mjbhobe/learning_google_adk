@@ -516,51 +516,56 @@ Memory Bank on Gemini platform can be used natively with Sessions to generate me
 
 ![Process to Generate Memories](images/how_to_generate_memory.png)
 
-<< Continue from here ------------------->>
+1. **Retrieve Memories:** As the user interacts, the agent retrieves saved memories. It can use simple retrieval for all memories, or similarity search for relevant ones, and insert them into the active prompt.
+2. **CreateSession:** Create a new session at the start of a conversation to scope the agent's history, storing messages as `SessionEvents`. A user ID is required so extracted memories can be mapped to the user.
+3. **ListEvents:** As the user interacts with the agent, the agent retrieves the active conversation history from the session.
+4. **AppendEvent:** As the user interacts, events (user messages, agent responses, and tool actions) are uploaded to the session. This persists the history and creates a record used to generate memories.
+5. **Generate Memories, Extract merge:** At a specified interval (e.g., end of a turn), the agent triggers memory generation. Facts are automatically extracted from the conversation history, making them available for current and future sessions.
+6. **CreateMemory:** The agent writes memories directly to the Memory Bank. Use this "memory-as-a-tool" approach when you want the agent to have more control over exactly what facts are extracted and saved.
 
-Diagram showing the process of generating memories from stored sessions using the Memory Bank on Gemini platform.
-Divider
-
-
-Run ADK agents in Agent Runtime
-
+#### Run ADK agents in Agent Runtime
 
 By now, you should be familiar with the concepts of sessions and memory, along with the strategies needed to optimize them. Now, it is time to explore Agent Runtime—the infrastructure where this data actually lives and how it is managed in a production environment.
 
-
 At its core, Agent Runtime is a set of services that enables developers to deploy, manage, and scale AI agents in production. By managing the complex infrastructure required to scale agents in production, it allows you to focus on creating applications.
 
-
 To support your development cycle, Agent Runtime offers the following services that you can use individually or in combination:
-Click each flipcard to reveal content
-Illustration of setting up an agent
 
+<div class="md-tabs">
+  <input type="radio" name="agent-runtime-services" id="tab-agent-runtime-svc-1" checked>
+  <label for="tab-agent-runtime-services-1">Managed Deployment and Scaling</label>
+  <input type="radio" name="agent-runtime-services" id="tab-agent-runtime-svc-2">
+  <label for="tab-agent-runtime-services-2">Custom Container Images</label>
+  <input type="radio" name="agent-runtime-services" id="tab-agent-runtime-svc-3">
+  <label for="tab-agent-runtime-services-3">Integrated Resources Allocation</label>
+  <div class="tab-panel">  
+    <p>Deploy and scale agents with a managed runtime and end-to-end management capabilities.</p>
+  </div>
+  <div class="tab-panel">
+    <p>Customize the agent's container image with build-time installation scripts for system dependencies.</p>
+  </div>
+  <div class="tab-panel">
+    <p>Leverage storage and compute resources associated with the Agent Runtime</p>
+  </div>
+</div>
 
-Examine the agent deployment workflow
-
+#### Examine the agent deployment workflow
 
 Here is the standard workflow for building an agent on Agent Runtime: 
 
+1. Set up your Google project and install the latest version of the Agent Platform SDK for Python.
+2. Develop an agent that can be deployed on Agent Runtime.
+3. Deploy the agent on the Agent Runtime managed runtime.
+4. Query the agent by sending an API request.
+5. Manage and delete agents that you have deployed to Agent Runtime.
 
-    Set up your Google project and install the latest version of the Agent Platform SDK for Python.
-    Develop an agent that can be deployed on Agent Runtime.
-    Deploy the agent on the Agent Runtime managed runtime.
-    Query the agent by sending an API request.
-    Manage and delete agents that you have deployed to Agent Runtime.
-
-Manage agent state
-
+#### Manage agent state
 
 As shown in the architecture diagram, data persistence within this runtime environment relies heavily on 3 platform features: Memory Bank, Sessions, Skills Registry.
 
-
-Architecture diagram of the Agent Platform highlighting development tools and runtime persistence services.
-
-
-Divider
+![Agent Platform Architectuure](images/agent_platform_arch.png)
 
 
-Summary
-
+#### Summary
 
 To scale stateful agents in a production environment, you rely on Agent Runtime to manage the underlying infrastructure. By leveraging Sessions to track immediate conversation history and Memory Bank to extract and store long-term facts, you create a continuous loop that allows your agent to learn, adapt, and personalize responses across multiple interactions.
