@@ -569,3 +569,131 @@ As shown in the architecture diagram, data persistence within this runtime envir
 #### Summary
 
 To scale stateful agents in a production environment, you rely on Agent Runtime to manage the underlying infrastructure. By leveraging Sessions to track immediate conversation history and Memory Bank to extract and store long-term facts, you create a continuous loop that allows your agent to learn, adapt, and personalize responses across multiple interactions.
+
+## Maintain the history of agent interactions with sessions
+
+Building stateful AI agents requires effectively managing information across multiple interactions. Because production environments are inherently stateless, you must persistently store conversation data and reconstruct the necessary context for every turn.
+
+In this chapter, you’ll explore the fundamentals of session management, which serves as the definitive container for active chat threads. You’ll examine how to structure events—the chronological sequence of interactions—and how to utilize session state as a dynamic scratchpad for tracking user preferences and task progress. You’ll also discover how different architectural patterns for multi-agent systems dictate communication, and learn how to leverage dedicated services to handle the lifecycle of these sessions, from creation to persistent storage and cleanup.
+
+### Define Sessions
+
+A foundational element of context engineering is the session. The session encapsulates the immediate dialogue history and working memory for a single, continuous conversation. Each session is a self-contained record that is tied to a specific user. 
+
+
+The session allows the agent to maintain context and provide coherent responses within the bounds of a single conversation. A user can have multiple sessions, but each one functions as a distinct, disconnected log of a specific interaction.
+
+Every session contains two key components: the chronological history (events), and the agent's working memory (state).
+
+|||
+|:--|:--|
+|**Events**<br/><small>These are building blocks of the conversation. Common types of events include user input (a message from the user), agent responses, tool calls (the agent's decision to use an external tool or API), or tool outputs (the data returned from the tool call, which the agent uses to continue reasoning)</small> | **State**<br/><small>Beyond chat history, a session often includes a state - a structured "working memory" or scratchpad. This holds temporary structured data relevant to the current conversation, like what items are in a shopping cart</small> |
+
+#### Structure events for the API
+
+To illustrate how this translates into code, the structure of the events is analogous to the list of content objects passed to the Gemini API. This means they share a similar format: each item represents one turn—or one event—in the conversation.
+
+Specifically, an event is broken down into:
+
+* **Role:** Defines who is speaking ("user" or "model").
+* **Parts:** Defines the actual content of the message (text, images, tool calls, etc.).
+
+Here is an example of how a conversation with multiple turns is formatted using these components:
+
+```python
+contents = [ 
+ { 
+   "role": "user", 
+   "parts": [ {"text": "What is the capital of France?"} ] 
+ }, { 
+   "role": "model", 
+   "parts": [ {"text": "The capital of France is Paris."} ] 
+ } 
+] 
+response = client.models.generate_content( 
+ model="gemini-2.5-flash", 
+ contents=contents 
+)
+```
+
+To make a conversation with multiple turns work, the full contents list must be sent every single time. This happens because a production agent's execution environment is typically stateless, meaning it retains no information after a request is completed. Consequently, its conversation history must be saved to persistent storage to maintain a continuous user experience.
+
+While in-memory  storage is suitable for development, production applications should leverage robust databases to reliably store and manage sessions. For example, you can store conversation history in managed solutions like Sessions on Gemini platform.
+Divider
+
+#### Summary
+
+A session acts as the definitive container for a single conversation, comprising the chronological event history and the agent's working memory (state). Because production environments are inherently stateless, you must persistently store this session data and pass the full conversation history to the model with every turn to maintain a continuous user experience.
+
+### Design sessions for multi-agent systems
+
+In a multi-agent system, multiple agents collaborate. Each agent focuses on a smaller, specialized task. For these agents to work together effectively, they must share information.  
+
+The system's architecture defines the communication patterns the agents use to share information. A central component of this architecture is how the system handles session history—the persistent log of all interactions.
+
+![Architectural Patterns for Multi-agent Systems](images/multi_agent_systems.svg)
+
+#### Differentiate session history and context
+
+Before exploring the architectural patterns for managing this history, it's crucial to distinguish it from the context sent to an LLM.
+
+|||
+|:--|:--|
+| **Session history**<br/><small>Think of this as the permanent, unabridged transcript of the entire conversation.</small> | **Context**<br/><small>This is the carefully crafted information payload sent to the LLM for a single turn.</small> |
+
+An agent might construct this context by selecting only a relevant excerpt from the history or by adding special formatting, like a guiding preamble, to steer the model's response. Remember that this section focuses on what information is passed across agents, not necessarily what context is sent to the LLM.
+
+#### Evaluate approaches to session history
+
+Agent frameworks handle session history for multi-agent systems using one of two primary approaches. The choice between these two patterns depends on the nature of the task and the desired collaboration style between your agents.
+
+1. Shared unified history
+
+    In this model, all agents in the system read from and write all events to the same, single conversation history. Every agent's message, tool call, and observation is appended to one central log in chronological order.
+
+    |||
+    |:--|:--|
+    |**Best For**<br><small>Tightly coupled collaborative tasks requiring a single source of truth, such as a multi-step problem solving process where one agent's output is the direct input for the next</small>| **Processing the log** <br/><small>Even with a shared history, a sub-agent might process the log before passing it to the LLM. For instance, it could filter for a subset of relevant events or add labels to identify which agent generated each event</small>|
+
+If you use the Agent Development Kit's (ADK) LLM-driven delegation to hand off to sub-agents, all of the intermediary events of the sub-agent are written to the same session as the root agent:
+
+Here is an example of what this looks like in practice:
+
+```python
+from google.adk.agents import LlmAgent 
+
+# The sub-agent has access to Session and writes events to it. 
+sub_agent_1 = LlmAgent(...) 
+
+# Optionally, the sub-agent can save the final response text (or structured  output) to the specified state key.  
+sub_agent_2 = LlmAgent( 
+ ..., 
+ output_key="..." 
+) 
+
+# Parent agent. 
+root_agent = LlmAgent( 
+ ..., 
+ sub_agents=[sub_agent_1, sub_agent_2] 
+)
+```
+
+2. Separate individual histories
+
+    In the separate, individual histories model, each agent maintains its own private conversation history and functions like a black box to other agents. All internal processes—such as intermediary thoughts, tool use, and reasoning steps—are kept within the agent's private log and are not visible to others.
+
+    |||
+    |:--|:--|
+    |**Communication**<br><small>Occurs only through explicit messages, where an agent shares its final output, not its process</small>| **Implementation** <br/><small>The interaction is typically implemented either using agent as tools (where one agent invokes another as though it were a standard tool, passing inputs and receiving a final, self-contained output) or the Agent-to-Agent (A2A) Protocol (where agents use a structured protocol for direct communication)</small>|
+
+#### Summary
+
+When designing a multi-agent system, your session architecture dictates how your agents collaborate. Choose a shared history for tightly coupled tasks where agents need full visibility into the chronological conversation log, or opt for separate histories when agents should act as independent "black boxes" that communicate only through final outputs.
+
+
+
+
+
+
+
+
